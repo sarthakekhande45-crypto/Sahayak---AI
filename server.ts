@@ -17,7 +17,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // Initialize Gemini SDK if API key is configured
 const apiKey = process.env.GEMINI_API_KEY;
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 let ai: GoogleGenAI | null = null;
 const isGeminiAvailable = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== 'MY_GEMINI_API_KEY');
 
@@ -41,7 +41,7 @@ if (isGeminiAvailable) {
 }
 
 // Timeout helper to guarantee responsiveness even under network latency
-function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number = 15000): Promise<T> {
+function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number = 45000): Promise<T> {
   let timeoutId: NodeJS.Timeout;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error('AI provider request timed out')), timeoutMs);
@@ -65,36 +65,39 @@ async function generateContentSafely(params: {
         contents: params.contents,
         config: params.config,
       }),
-      params.timeoutMs || 18000
+      params.timeoutMs || 45000
     );
   } catch (err: any) {
     const isTemporaryFailure =
+      err?.status === 404 ||
       err?.status === 429 ||
       err?.status === 503 ||
       (typeof err?.message === 'string' &&
         (err.message.includes('Quota exceeded') ||
           err.message.includes('RESOURCE_EXHAUSTED') ||
           err.message.includes('high demand') ||
-          err.message.includes('UNAVAILABLE')));
+          err.message.includes('UNAVAILABLE') ||
+          err.message.includes('not found') ||
+          err.message.includes('NOT_FOUND')));
     if (isTemporaryFailure && primaryModel !== 'gemini-3.1-flash-lite') {
-      console.warn(`Primary model ${primaryModel} temporary demand/quota issue, falling back to gemini-3.1-flash-lite...`);
+      console.warn(`Primary model ${primaryModel} failed or busy, falling back to gemini-3.1-flash-lite...`);
       return await callWithTimeout(
         ai.models.generateContent({
           model: 'gemini-3.1-flash-lite',
           contents: params.contents,
           config: params.config,
         }),
-        params.timeoutMs || 18000
+        params.timeoutMs || 30000
       );
-    } else if (isTemporaryFailure && primaryModel !== 'gemini-3.5-flash') {
-      console.warn(`Primary model ${primaryModel} temporary demand/quota issue, falling back to gemini-3.5-flash...`);
+    } else if (isTemporaryFailure && primaryModel !== 'gemini-3.8-flash') {
+      console.warn(`Primary model ${primaryModel} failed or busy, falling back to gemini-3.8-flash...`);
       return await callWithTimeout(
         ai.models.generateContent({
-          model: 'gemini-3.5-flash',
+          model: 'gemini-3.8-flash',
           contents: params.contents,
           config: params.config,
         }),
-        params.timeoutMs || 18000
+        params.timeoutMs || 30000
       );
     }
     throw err;
@@ -742,18 +745,13 @@ app.post('/api/chat-companion', async (req, res) => {
       return res.status(400).json({ error: 'Message content is required.' });
     }
 
-    const trimmedMsg = message.trim().slice(0, 1000);
+    const trimmedMsg = message.trim().slice(0, 3000);
 
     const lower = trimmedMsg.toLowerCase();
     const isCrisis =
-      lower.includes('suicid') ||
-      lower.includes('kill myself') ||
-      lower.includes('end my life') ||
-      lower.includes('want to die') ||
-      lower.includes('hurt myself') ||
-      lower.includes('harm myself') ||
-      lower.includes('end it all') ||
-      lower.includes('give up completely');
+      /\b(suicid|kill(ing)?\s+myself|end(ing)?\s+(my\s+life|it\s+all)|want\s+to\s+die|hurt(ing)?\s+myself|harm(ing)?\s+myself|give\s+up\s+completely|giving\s+up\s+completely|hang(ing)?\s+myself)\b/i.test(
+        lower
+      );
 
     // AI Mode: If Gemini is initialized, generate dynamic response
     if (ai) {
@@ -765,28 +763,62 @@ Your primary responsibility is to understand the student's actual question and p
 You are not restricted to mental wellness topics. Students may ask about academics, technology, everyday problems, relationships, general knowledge, personal development, and other appropriate subjects.
 
 RESPONSE RULES:
+
 1. Understand the specific question before answering. Never respond with a generic mental wellness message when the user has asked a different question.
-2. Generate a fresh, contextually relevant answer for every message. Never reuse a predefined template.
-3. Answer general questions directly and accurately. If asked about a study technique (like Pomodoro or Feynman), a programming question, a math concept, or general trivia, explain it clearly and helpfully. Do not force the conversation back to mental wellness or arbitrarily append grounding exercises.
-4. For emotional, stress, or personal wellness questions, respond with warmth, empathy, non-judgmental support, and gentle practical strategies.
-5. You are an AI companion, not a licensed therapist or physician. Do not give medical diagnoses or clinical prescriptions.
-6. If the user mentions immediate self-harm or danger, compassionately provide crisis helpline information while maintaining a supportive human tone:
-   - India: Tele-MANAS (14416 or 1800-891-4416) or KIRAN (1800-599-0019)
-   - US/Canada: 988 Suicide & Crisis Lifeline (call/text 988)
-   - Emergency dispatch: 112 (India) or 911 (US)
-7. Tone: warm, thoughtful, intelligent, approachable, and encouraging without being overly verbose.`;
+
+2. Generate a fresh, contextually relevant answer for every message. Never reuse a fixed response merely because a question was received.
+
+3. Answer simple questions directly and concisely. For complex questions, provide a detailed, structured explanation with examples and actionable steps.
+
+4. When appropriate, use headings, numbered steps, bullet points, examples, comparisons, and summaries to make long answers easier to understand.
+
+5. Use the conversation history to understand references such as 'explain that again', 'give an example', or 'what should I do next?'.
+
+6. Ask a clarifying question only when necessary. Otherwise, make reasonable assumptions and provide a useful answer.
+
+7. Be honest about uncertainty. Never invent facts, sources, capabilities, or actions.
+
+8. Match the student's language and level of understanding. Explain technical concepts clearly without being condescending.
+
+9. When discussing emotions or personal difficulties, be empathetic and nonjudgmental. Do not diagnose mental health conditions or claim to replace a qualified professional.
+
+10. Do not turn every conversation into therapy. Be a capable general-purpose assistant that can also provide supportive mental wellness guidance when relevant.
+
+11. If a question requires current information that you cannot verify, explain the limitation instead of presenting outdated information as current.
+
+12. Do not automatically reveal private conversation content to mentors or other users.
+
+13. If the student describes immediate danger, respond with supportive, safety-focused guidance and encourage contacting a trusted person or appropriate local emergency support:
+    - India: Tele-MANAS (14416 or 1800-891-4416) or KIRAN (1800-599-0019)
+    - US/Canada: 988 Suicide & Crisis Lifeline (call/text 988)
+    - Emergency dispatch: 112 (India) or 911 (US)
+
+14. Never claim that you searched the web, accessed an external account, or performed an action unless that capability was actually used.
+
+Your goal is to provide answers that directly address the user's intent, with the depth, accuracy, empathy, and clarity appropriate to each question.`;
 
         // Format conversation history for Gemini multi-turn chat
         const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
         if (Array.isArray(history)) {
-          for (const h of history.slice(-12)) {
+          for (const h of history.slice(-16)) {
             if (!h || typeof h.text !== 'string' || !h.text.trim()) continue;
-            const role: 'user' | 'model' = h.sender === 'student' ? 'user' : 'model';
-            if (contents.length > 0 && contents[contents.length - 1].role === role) {
-              contents[contents.length - 1].parts[0].text += `\n${h.text.trim()}`;
+            const role: 'user' | 'model' =
+              h.role === 'user' || h.sender === 'student' ? 'user' : 'model';
+            const cleanText = h.text.trim();
+
+            if (contents.length === 0) {
+              if (role === 'user') {
+                contents.push({ role: 'user', parts: [{ text: cleanText }] });
+              }
+              // Skip leading model turns to ensure conversations start with user
             } else {
-              contents.push({ role, parts: [{ text: h.text.trim() }] });
+              const lastTurn = contents[contents.length - 1];
+              if (lastTurn.role === role) {
+                lastTurn.parts[0].text += `\n\n${cleanText}`;
+              } else {
+                contents.push({ role, parts: [{ text: cleanText }] });
+              }
             }
           }
         }
@@ -798,7 +830,7 @@ RESPONSE RULES:
 
         // Append the student's current message
         if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-          contents[contents.length - 1].parts[0].text += `\n${trimmedMsg}`;
+          contents[contents.length - 1].parts[0].text += `\n\n${trimmedMsg}`;
         } else {
           contents.push({ role: 'user', parts: [{ text: trimmedMsg }] });
         }
@@ -810,12 +842,26 @@ RESPONSE RULES:
             systemInstruction,
             temperature: 0.7,
           },
-          timeoutMs: 18000,
+          timeoutMs: 45000,
         });
 
-        const reply = response.text?.trim();
+        let reply = response.text?.trim();
+        if (!reply && response.candidates?.[0]?.content?.parts) {
+          reply = response.candidates[0].content.parts
+            .map((p: any) => p.text)
+            .filter(Boolean)
+            .join('\n')
+            .trim();
+        }
+
         if (!reply) {
-          throw new Error('Gemini API returned an empty response.');
+          const finishReason = response.candidates?.[0]?.finishReason;
+          if (finishReason === 'SAFETY') {
+            reply =
+              'I am unable to answer this specific query due to safety considerations. Please feel free to ask another question or rephrase your inquiry.';
+          } else {
+            throw new Error('Gemini API returned an empty response.');
+          }
         }
 
         return res.json({
@@ -828,7 +874,9 @@ RESPONSE RULES:
         console.error('Gemini companion chat error:', geminiError);
         return res.status(502).json({
           error: 'Gemini service temporarily unavailable.',
-          details: geminiError?.message || 'Error communicating with Google Gemini API. Please retry your message.',
+          details:
+            geminiError?.message ||
+            'Error communicating with Google Gemini API. Please check your network and retry your message.',
         });
       }
     }
@@ -844,10 +892,9 @@ RESPONSE RULES:
       });
     }
 
-    return res.json({
-      reply: `[Demo Mode Notice: Please configure GEMINI_API_KEY on the server for full AI capabilities]\n\nThank you for sharing your thought: "${trimmedMsg}". In active Gemini AI mode, responses are dynamically reasoned across academics, technology, daily student life, and mental wellness without generic templates.`,
-      source: 'Demo Engine (No Key Configured)',
-      mode: 'demo',
+    return res.status(503).json({
+      error: 'GEMINI_API_KEY is not configured on the server.',
+      details: 'Please set the GEMINI_API_KEY secret on the server to enable real-time dynamic Gemini chat responses.',
     });
   } catch (error: any) {
     console.error('Error in chat companion endpoint:', error);

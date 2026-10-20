@@ -219,28 +219,31 @@ export const AIJournalling: React.FC = () => {
         }),
       });
 
-      if (!res.ok) throw new Error('Companion service error');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.details || errData.error || 'Companion service error');
+      }
       const data = await res.json();
 
       setCompanionMessages((prev) => [
         ...prev,
         {
           sender: 'companion',
-          text: data.reply || 'Thank you for sharing that. Take your time—what feels most important right now?',
+          text: data.reply || 'Thank you for sharing that.',
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           exercise: data.exerciseSuggestion,
         },
       ]);
-    } catch {
+    } catch (err: any) {
       setCompanionMessages((prev) => [
         ...prev,
         {
           sender: 'companion',
-          text: 'Thank you for reflecting on that. College life can ask a lot of your mind and body. How does your chest feel when you take a deep, slow breath right now?',
+          text: `[Service Notice]: ${err?.message || 'Unable to connect with the AI Companion service right now. Please check your connection and retry.'}`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          exercise: 'Box Breathing: Inhale 4s, hold 4s, exhale 4s, pause 4s.',
         },
       ]);
+      showToast('Could not reach Gemini service. Please retry.', 'warning');
     } finally {
       setCompanionLoading(false);
     }
