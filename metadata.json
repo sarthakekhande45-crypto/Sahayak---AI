@@ -1,0 +1,6 @@
+{
+  "name": "SAHAYAK — AI-Powered Mental Wellness Platform",
+  "description": "Privacy-aware mental wellness platform for college students. Private journaling, emotion tracking, drift detection, and supportive mentor guidance without exposing private journals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
