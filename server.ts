@@ -6,14 +6,23 @@ import { GoogleGenAI, Type } from '@google/genai';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = typeof import.meta?.url === 'string' ? fileURLToPath(import.meta.url) : '';
+const __dirname = __filename ? path.dirname(__filename) : process.cwd();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-app.use(express.json({ limit: '1mb' }));
+// CORS & Preflight handling
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Normalize incoming path for serverless/Vercel environments and catch-all routes
 app.use((req, res, next) => {
@@ -27,8 +36,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Safely handle request body across both local Node and Vercel serverless environments
+app.use((req, res, next) => {
+  // On Vercel, req.body is often pre-parsed by the runtime. If already parsed, skip express.json()
+  if (req.body !== undefined && typeof req.body === 'object' && req.body !== null) {
+    return next();
+  }
+  // Otherwise parse JSON body
+  express.json({ limit: '1mb' })(req, res, (err) => {
+    if (err) {
+      console.warn('JSON parsing error in request body:', err);
+      return res.status(400).json({ error: 'Invalid JSON request payload.', details: err?.message });
+    }
+    next();
+  });
+});
+
 // Initialize Gemini SDK if API key is configured
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
 function resolveGeminiModel(): string {
   const envModel = process.env.GEMINI_MODEL?.trim();
@@ -49,14 +74,18 @@ export const GEMINI_MODEL = resolveGeminiModel();
 let ai: GoogleGenAI | null = null;
 
 export function getAIClient(): GoogleGenAI | null {
-  const currentKey = process.env.GEMINI_API_KEY;
-  if (!currentKey || currentKey.trim() === '' || currentKey === 'MY_GEMINI_API_KEY') {
+  const rawKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  if (!rawKey || typeof rawKey !== 'string') {
+    return null;
+  }
+  const currentKey = rawKey.trim().replace(/^["']|["']$/g, '');
+  if (!currentKey || currentKey === '' || currentKey === 'MY_GEMINI_API_KEY') {
     return null;
   }
   if (!ai) {
     try {
       ai = new GoogleGenAI({
-        apiKey: currentKey.trim(),
+        apiKey: currentKey,
         httpOptions: {
           headers: {
             'User-Agent': 'aistudio-build',

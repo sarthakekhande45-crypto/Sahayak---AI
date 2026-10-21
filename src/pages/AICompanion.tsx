@@ -596,7 +596,13 @@ export const AICompanion: React.FC = () => {
         }),
       });
 
-      const data = await response.json().catch(() => ({}));
+      let data: any = {};
+      const rawText = await response.text().catch(() => '');
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = { error: rawText };
+      }
 
       // Guard: Check if request has been superseded or cancelled
       if (activeRequestIdRef.current !== currentRequestId) {
@@ -605,13 +611,16 @@ export const AICompanion: React.FC = () => {
 
       if (!response.ok) {
         let errorDesc = data.details || data.error;
-        if (!errorDesc) {
+        if (!errorDesc || typeof errorDesc !== 'string' || errorDesc.trim().length === 0) {
           if (response.status === 404) {
             errorDesc =
               'Server returned status 404. On Vercel, ensure vercel.json and api/index.ts are deployed and GEMINI_API_KEY is set in your Vercel Project Settings.';
           } else if (response.status === 503) {
             errorDesc =
               'GEMINI_API_KEY is not configured on the server. Please add GEMINI_API_KEY in your Vercel Project Settings > Environment Variables.';
+          } else if (response.status === 500) {
+            errorDesc =
+              'Server error (500). If deployed on Vercel, please check your Vercel Function Logs for error details or verify your GEMINI_API_KEY.';
           } else {
             errorDesc = `Server returned status ${response.status}. Please check your connection and retry.`;
           }
