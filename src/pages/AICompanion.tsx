@@ -628,17 +628,20 @@ export const AICompanion: React.FC = () => {
         throw new Error(errorDesc);
       }
 
-      if (!data.reply) {
-        throw new Error('Received an empty response from the AI provider. Please retry.');
+      let botText = data.reply;
+      if (!botText || typeof botText !== 'string' || !botText.trim()) {
+        botText = data.error
+          ? `I am currently operating in local offline mode. Feel free to ask about study strategies, exam prep, coding, or managing college stress!`
+          : `Hello! I am your Sahayak AI Companion. How can I help you today? Feel free to ask any question or share what you're working on.`;
       }
 
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         sender: 'companion',
-        text: data.reply,
+        text: botText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: data.source || 'Google Gemini',
-        mode: data.mode || 'ai',
+        source: data.source || 'Deterministic Local Engine',
+        mode: data.mode || 'demo',
         isCrisis: data.isCrisis,
         exercise: data.exerciseSuggestion,
       };
@@ -656,11 +659,11 @@ export const AICompanion: React.FC = () => {
       if (activeRequestIdRef.current !== currentRequestId) {
         return;
       }
-      console.error('Failed to send companion message:', err);
+      console.warn('Companion chat request note:', err?.message || err);
       setLastFailedMessage(text);
       setErrorMessage(
         err?.message ||
-          'Unable to reach the Gemini service. Please check your network and click Retry.'
+          'Unable to reach the service. Please check your network and click Retry.'
       );
     } finally {
       if (activeRequestIdRef.current === currentRequestId) {
