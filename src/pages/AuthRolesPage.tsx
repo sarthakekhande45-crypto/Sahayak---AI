@@ -210,6 +210,86 @@ export const AuthRolesPage: React.FC = () => {
           3. Client-side attempts to switch roles without valid server credentials are rejected with HTTP 403 Forbidden.
         </p>
       </div>
+
+      {/* Firebase Cloud Firestore Configuration & Vercel Deployment Instructions */}
+      <div className="bg-white border border-[#A8C5A0]/80 rounded-2xl p-6 space-y-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-neutral-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#E3F2E8] flex items-center justify-center text-[#174D3A]">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#202B26]">
+                Firebase Cloud Firestore Integration &amp; Vercel Deployment Guide
+              </h3>
+              <p className="text-xs text-neutral-500">
+                Registered Web App: Sahayak AI · Project ID: <code className="text-[#174D3A] font-semibold">{useApp().firebaseStatus.projectId || 'neat-synthesis-q8f9p'}</code>
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full border flex items-center gap-1.5 w-fit ${
+              useApp().firebaseStatus.isConfigured
+                ? 'bg-[#E3F2E8] text-[#174D3A] border-[#A8C5A0]/80'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>{useApp().firebaseStatus.isConfigured ? 'Firestore SDK Initialized' : 'Offline / Local Seed'}</span>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-3.5 rounded-xl bg-[#F7F8F4] border border-neutral-200/80 space-y-1.5">
+            <div className="font-bold text-[#174D3A] flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Persisted Firestore Collections</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-neutral-600">
+              <li><code>mood_checkins</code>: Fictional student mood logs &amp; trends</li>
+              <li><code>wellness_summaries</code>: Approved, privacy-scrubbed summaries</li>
+              <li><code>mentor_messages</code>: Mentor care notes &amp; student replies</li>
+              <li><code>students</code>: Consistent demo directory &amp; privacy consent</li>
+            </ul>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#F7F8F4] border border-neutral-200/80 space-y-1.5">
+            <div className="font-bold text-[#174D3A] flex items-center gap-1.5">
+              <Lock className="w-4 h-4" />
+              <span>Cryptographic Privacy Isolation</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-neutral-600">
+              <li><strong>Private Journal Diaries</strong>: Stored ONLY in local client storage; never sent to Firestore or mentor views.</li>
+              <li><strong>AI Companion Chats</strong>: Real-time sessions protected server-side; zero raw transcript sharing.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Step-by-Step Vercel Deployment Instructions */}
+        <div className="space-y-3 pt-2">
+          <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+            How to Deploy on Vercel with Firebase &amp; Gemini:
+          </h4>
+          <ol className="list-decimal list-inside space-y-2 text-xs text-neutral-600">
+            <li>
+              <strong>Push Code to GitHub</strong>: Ensure <code>firebase-applet-config.json</code>, <code>firestore.rules</code>, <code>vercel.json</code>, and <code>api/index.ts</code> are committed.
+            </li>
+            <li>
+              <strong>Configure Vercel Environment Variables</strong> (Vercel Project Settings &gt; Environment Variables):
+              <div className="mt-1.5 p-3 rounded-lg bg-neutral-900 text-neutral-200 font-mono text-[11px] space-y-1">
+                <div>GEMINI_API_KEY = AIzaSy... (Your Google AI Studio API Key)</div>
+                <div>VITE_FIREBASE_PROJECT_ID = neat-synthesis-q8f9p</div>
+                <div>VITE_FIREBASE_API_KEY = AIzaSy... (Your Firebase Web API Key)</div>
+                <div>VITE_FIREBASE_DATABASE_ID = ai-studio-sahayak-4880858b-4361-4ae1-b060-9c1103dffb1e</div>
+              </div>
+            </li>
+            <li>
+              <strong>Redeploy</strong>: Click <em>Deploy</em> in Vercel. Both serverless Gemini endpoints (<code>/api/*</code>) and client-side Firestore listeners will automatically activate.
+            </li>
+          </ol>
+        </div>
+      </div>
     </div>
   );
 };

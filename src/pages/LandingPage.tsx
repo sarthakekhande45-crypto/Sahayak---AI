@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { LOGO_PATH } from '../components/Navbar';
+import heroMedallionImg from '../assets/images/regenerated_image_1792601054401.jpg';
 import {
   Shield,
   Heart,
@@ -124,7 +125,7 @@ export const LandingPage: React.FC = () => {
                     <div className="relative">
                       <div className="w-28 h-28 rounded-full overflow-hidden border-3 border-[#174D3A]/20 shadow-md p-1 bg-gradient-to-b from-[#E3F2E8] to-white">
                         <img
-                          src={LOGO_PATH}
+                          src={heroMedallionImg}
                           alt="Sahayak Lotus Leaf Emblem"
                           className="w-full h-full object-cover rounded-full"
                         />

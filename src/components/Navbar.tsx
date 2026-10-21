@@ -15,6 +15,7 @@ import {
   FlaskConical,
   HeartHandshake,
   MessageCircle,
+  Database,
 } from 'lucide-react';
 
 export const LOGO_PATH = '/assets/aistudio/WhatsApp_Image_2026-10-20_at_3.19.43_PM_415b6f35.jpeg';
@@ -28,6 +29,7 @@ export const Navbar: React.FC = () => {
     activeStudent,
     setGuidedDemoStep,
     resetDemoData,
+    firebaseStatus,
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -115,6 +117,23 @@ export const Navbar: React.FC = () => {
 
           {/* Zone 3: Actions - Guided Tour, Role Switcher, Reset Demo */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Firebase Cloud Firestore status badge */}
+            <div
+              className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg border ${
+                firebaseStatus.isConfigured
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-neutral-100 text-neutral-600 border-neutral-200'
+              }`}
+              title={
+                firebaseStatus.isConfigured
+                  ? `Firebase Firestore active (Project: ${firebaseStatus.projectId})`
+                  : 'Local offline dataset active'
+              }
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{firebaseStatus.isConfigured ? 'Firestore' : 'Local Demo'}</span>
+            </div>
+
             {/* Guided Demo Tour Button (Hackathon Highlight) */}
             <button
               onClick={() => {

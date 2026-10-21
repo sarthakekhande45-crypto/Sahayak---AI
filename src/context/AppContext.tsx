@@ -9,6 +9,7 @@ import {
   WellnessSummary,
   MoodLevel,
   AIProviderStatus,
+  FirebaseStatusInfo,
 } from '../types';
 import {
   INITIAL_STUDENTS,
@@ -17,6 +18,22 @@ import {
   INITIAL_MENTOR_MESSAGES,
   INITIAL_SUMMARIES,
 } from '../data/seedData';
+import {
+  fetchMoodCheckIns,
+  persistMoodCheckIn,
+  subscribeMoodCheckIns,
+  fetchWellnessSummaries,
+  persistWellnessSummary,
+  subscribeWellnessSummaries,
+  fetchMentorMessages,
+  persistMentorMessage,
+  persistMentorMessageReply,
+  persistMentorMessageRead,
+  subscribeMentorMessages,
+  fetchStudentProfiles,
+  persistStudentConsent,
+} from '../services/firestoreService';
+import { firebaseState, testConnection } from '../lib/firebase';
 import confetti from 'canvas-confetti';
 
 interface ToastInfo {
@@ -42,6 +59,8 @@ interface AppContextType {
   showToast: (message: string, type?: 'success' | 'info' | 'warning') => void;
   aiStatus: AIProviderStatus;
   refreshAIStatus: () => Promise<void>;
+  firebaseStatus: FirebaseStatusInfo;
+  refreshFirebaseStatus: () => Promise<void>;
   addMoodCheckIn: (mood: MoodLevel, emotions: string[], note?: string) => void;
   saveJournalEntry: (content: string, title?: string, moodLabel?: string) => JournalEntry;
   deleteJournalEntry: (id: string) => void;
@@ -90,6 +109,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshAIStatus();
   }, [refreshAIStatus]);
 
+  // Firebase Firestore connection state
+  const [firebaseStatus, setFirebaseStatus] = useState<FirebaseStatusInfo>({
+    isConfigured: firebaseState.isConfigured,
+    projectId: firebaseState.projectId,
+    databaseId: firebaseState.databaseId,
+    connected: false,
+  });
+
+  const refreshFirebaseStatus = useCallback(async () => {
+    if (firebaseState.isConfigured) {
+      const isOnline = await testConnection();
+      setFirebaseStatus({
+        isConfigured: true,
+        projectId: firebaseState.projectId,
+        databaseId: firebaseState.databaseId,
+        connected: isOnline,
+      });
+    } else {
+      setFirebaseStatus({
+        isConfigured: false,
+        projectId: '',
+        databaseId: '',
+        connected: false,
+      });
+    }
+  }, []);
+
+  // Initialize and synchronize with Firestore when configured
+  useEffect(() => {
+    let unsubMoods: (() => void) | undefined;
+    let unsubSummaries: (() => void) | undefined;
+    let unsubMessages: (() => void) | undefined;
+
+    async function initFirestore() {
+      if (firebaseState.isConfigured) {
+        const isOnline = await testConnection();
+        setFirebaseStatus({
+          isConfigured: true,
+          projectId: firebaseState.projectId,
+          databaseId: firebaseState.databaseId,
+          connected: isOnline,
+        });
+
+        try {
+          const [loadedStudents, loadedMoods, loadedSummaries, loadedMessages] = await Promise.all([
+            fetchStudentProfiles(),
+            fetchMoodCheckIns(),
+            fetchWellnessSummaries(),
+            fetchMentorMessages(),
+          ]);
+
+          if (loadedStudents.length > 0) setStudents(loadedStudents);
+          if (loadedMoods.length > 0) setMoodHistory(loadedMoods);
+          if (loadedSummaries.length > 0) setWellnessSummaries(loadedSummaries);
+          if (loadedMessages.length > 0) setMentorMessages(loadedMessages);
+
+          unsubMoods = subscribeMoodCheckIns((updated) => setMoodHistory(updated));
+          unsubSummaries = subscribeWellnessSummaries((updated) => setWellnessSummaries(updated));
+          unsubMessages = subscribeMentorMessages((updated) => setMentorMessages(updated));
+        } catch (err) {
+          console.warn('Firestore initial sync notice:', err);
+        }
+      }
+    }
+
+    initFirestore();
+
+    return () => {
+      unsubMoods?.();
+      unsubSummaries?.();
+      unsubMessages?.();
+    };
+  }, []);
+
   // Persistent / demo state
   const [students, setStudents] = useState<StudentProfile[]>(() => {
     try {
@@ -136,7 +229,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  // Save to localStorage
+  // Save to localStorage as resilient offline backing
   useEffect(() => {
     try {
       localStorage.setItem(`${STORAGE_KEY}_STUDENTS`, JSON.stringify(students));
@@ -224,10 +317,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setMoodHistory((prev) => [...prev, newCheckIn]);
+    persistMoodCheckIn(newCheckIn).catch(() => {});
     showToast(`Mood check-in saved: "${mood}". Your wellness tree grew a new leaf! 🌱`, 'success');
     triggerGrowthCelebration();
   };
 
+  // Private journaling: NEVER written to Firestore or shared with mentors
   const saveJournalEntry = (content: string, title?: string, moodLabel: string = 'Reflective'): JournalEntry => {
     const entry: JournalEntry = {
       id: `entry-${Date.now()}`,
@@ -257,6 +352,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addWellnessSummary = (summary: WellnessSummary) => {
     setWellnessSummaries((prev) => [summary, ...prev]);
+    if (summary.sharingConsent) {
+      persistWellnessSummary(summary).catch(() => {});
+    }
   };
 
   const sendMentorMessage = (studentId: string, message: string) => {
@@ -272,19 +370,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setMentorMessages((prev) => [newMsg, ...prev]);
+    persistMentorMessage(newMsg).catch(() => {});
 
     // Update unread count on student profile
     setStudents((prev) =>
       prev.map((s) => (s.id === studentId ? { ...s, unreadMessagesCount: s.unreadMessagesCount + 1 } : s))
     );
 
-    showToast(`Supportive message sent to ${studentId === 'student-03' ? 'Student #03' : 'student'}. (Simulated delivery)`, 'success');
+    showToast(`Supportive message sent to ${studentId === 'student-03' ? 'Student #03' : 'student'}.`, 'success');
   };
 
   const replyToMentorMessage = (messageId: string, replyText: string) => {
     setMentorMessages((prev) =>
       prev.map((m) => (m.id === messageId ? { ...m, studentReply: replyText } : m))
     );
+    persistMentorMessageReply(messageId, replyText).catch(() => {});
     showToast('Your supportive reply was delivered to the mentor.', 'success');
   };
 
@@ -292,6 +392,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMentorMessages((prev) =>
       prev.map((m) => (m.id === messageId ? { ...m, readAt: new Date().toISOString() } : m))
     );
+    persistMentorMessageRead(messageId).catch(() => {});
     setStudents((prev) =>
       prev.map((s) =>
         s.id === 'student-03' ? { ...s, unreadMessagesCount: Math.max(0, s.unreadMessagesCount - 1) } : s
@@ -311,9 +412,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : s
       )
     );
+    persistStudentConsent(studentId, consent).catch(() => {});
     showToast(
       consent
-        ? 'Identity sharing granted for this mentor check-in (Simulated consent demo).'
+        ? 'Identity sharing granted for this mentor check-in.'
         : 'Identity sharing revoked. Profile reverts to anonymous identifier.',
       'info'
     );
@@ -352,6 +454,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         showToast,
         aiStatus,
         refreshAIStatus,
+        firebaseStatus,
+        refreshFirebaseStatus,
         addMoodCheckIn,
         saveJournalEntry,
         deleteJournalEntry,

@@ -67,6 +67,13 @@ export interface AIProviderStatus {
   timestamp: string;
 }
 
+export interface FirebaseStatusInfo {
+  isConfigured: boolean;
+  projectId: string;
+  databaseId: string;
+  connected: boolean;
+}
+
 export interface MentorMessage {
   id: string;
   studentId: string;

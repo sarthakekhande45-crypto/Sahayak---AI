@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "MoodCheckIn": {
+      "title": "MoodCheckIn",
+      "description": "Fictional self-reported student mood check-in entry for trend visualization.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 32 },
+        "displayDate": { "type": "string", "maxLength": 32 },
+        "moodScore": { "type": "number" },
+        "moodLabel": { "type": "string", "maxLength": 64 },
+        "emotions": { "type": "array" },
+        "note": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "studentId", "date", "moodScore", "moodLabel", "createdAt"]
+    },
+    "WellnessSummary": {
+      "title": "WellnessSummary",
+      "description": "Approved, privacy-preserving abstracted wellness summary for mentor support.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "possibleMood": { "type": "string", "maxLength": 64 },
+        "summary": { "type": "string", "maxLength": 1000 },
+        "themes": { "type": "array" },
+        "stressIndicators": { "type": "array" },
+        "confidence": { "type": "string", "maxLength": 128 },
+        "reflectionSuggestion": { "type": "string", "maxLength": 500 },
+        "uncertaintyNote": { "type": "string", "maxLength": 500 },
+        "sharingConsent": { "type": "boolean" },
+        "source": { "type": "string", "maxLength": 64 },
+        "mode": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "studentId", "summary", "sharingConsent", "createdAt"]
+    },
+    "MentorMessage": {
+      "title": "MentorMessage",
+      "description": "Supportive mentor care message and optional student reply.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "mentorId": { "type": "string", "maxLength": 128 },
+        "mentorName": { "type": "string", "maxLength": 128 },
+        "mentorRole": { "type": "string", "maxLength": 128 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "readAt": { "type": "string", "maxLength": 64 },
+        "studentReply": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "studentId", "mentorId", "message", "createdAt"]
+    },
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Student wellness record with anonymized identifiers and privacy consent settings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "anonymousId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "department": { "type": "string", "maxLength": 128 },
+        "year": { "type": "string", "maxLength": 64 },
+        "identitySharingConsent": { "type": "boolean" },
+        "consentUpdatedAt": { "type": "string", "maxLength": 64 },
+        "patternStatus": { "type": "string", "maxLength": 64 },
+        "recentTrend": { "type": "string", "maxLength": 256 },
+        "activitySummary": { "type": "string", "maxLength": 500 },
+        "suggestedAction": { "type": "string", "maxLength": 500 },
+        "limitedSummary": { "type": "string", "maxLength": 500 },
+        "unreadMessagesCount": { "type": "number" }
+      },
+      "required": ["id", "anonymousId", "displayName", "identitySharingConsent", "patternStatus"]
+    }
+  },
+  "firestore": {
+    "/mood_checkins/{checkinId}": {
+      "schema": "MoodCheckIn",
+      "description": "Self-reported mood logs for emotional trend charts."
+    },
+    "/wellness_summaries/{summaryId}": {
+      "schema": "WellnessSummary",
+      "description": "Contextual, privacy-transformed wellness summaries approved by students."
+    },
+    "/mentor_messages/{messageId}": {
+      "schema": "MentorMessage",
+      "description": "Supportive messages sent by campus wellness mentors."
+    },
+    "/students/{studentId}": {
+      "schema": "StudentProfile",
+      "description": "Public and pseudonymized cohort student profiles."
+    }
+  }
+}

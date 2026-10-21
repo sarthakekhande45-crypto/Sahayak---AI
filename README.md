@@ -113,15 +113,31 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🚢 Deployment Instructions
 
-### Deploy to Vercel (Recommended)
-1. Push your repository to GitHub.
+### Deploy to Vercel
+1. Push your repository to GitHub (ensure `firebase-applet-config.json`, `firestore.rules`, `vercel.json`, and `api/index.ts` are included).
 2. In the [Vercel Dashboard](https://vercel.com/dashboard), click **Add New Project** and import your repository.
 3. **Framework Preset:** `Vite`
 4. **Build Command:** `npm run build`
 5. **Output Directory:** `dist`
 6. **Environment Variables:**
-   - Add `GEMINI_API_KEY` (Optional; if omitted, the app gracefully falls back to deterministic client-side demo analysis).
-7. Click **Deploy**.
+   - `GEMINI_API_KEY`: Your Google AI Studio API key (starts with `AIzaSy...`).
+   - `VITE_FIREBASE_PROJECT_ID`: `neat-synthesis-q8f9p`
+   - `VITE_FIREBASE_API_KEY`: Your Firebase Web API key
+   - `VITE_FIREBASE_DATABASE_ID`: `ai-studio-sahayak-4880858b-4361-4ae1-b060-9c1103dffb1e`
+   - `VITE_FIREBASE_AUTH_DOMAIN`: `neat-synthesis-q8f9p.firebaseapp.com`
+7. Click **Deploy**. Both serverless Gemini endpoints (`/api/*`) and client-side Firestore synchronization will automatically activate.
+
+---
+
+## 🔒 Privacy & Firestore Architecture
+
+- **Private Student Journals & Companion Chats:** Kept exclusively on the client (or in browser local storage). Raw personal diary text is cryptographically isolated and never stored in Firestore collections or made accessible to campus mentors.
+- **Synchronized Collections:**
+  - `mood_checkins`: Discrete self-reported 5-point mood logs and emotion tags for 14-day trend analysis.
+  - `wellness_summaries`: Explicitly consented, privacy-transformed abstracted themes (e.g. "Academic Workload & Evaluative Pressure") with PII scrubbed.
+  - `mentor_messages`: Supportive outreach messages composed by mentors and optional student responses.
+  - `students`: Pseudonymized student tokens (`Student #01` to `#05`) with stability indicators.
+- **Security Rules:** Hardened zero-trust ABAC rules in `firestore.rules` enforcing key constraints, field length limits, and default-deny protection.
 
 ---
 

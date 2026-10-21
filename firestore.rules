@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Test connection probe used on app boot
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // 1. Mood Check-Ins (Fictional self-reported logs)
+    function isValidMoodCheckIn(data) {
+      return data.keys().hasAll(['id', 'studentId', 'date', 'moodScore', 'moodLabel', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.date is string && data.date.size() <= 32
+        && data.moodScore is number && data.moodScore >= 1 && data.moodScore <= 5
+        && data.moodLabel is string && data.moodLabel.size() <= 64
+        && (!('emotions' in data) || (data.emotions is list && data.emotions.size() <= 20))
+        && (!('note' in data) || (data.note is string && data.note.size() <= 500))
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /mood_checkins/{checkinId} {
+      allow read: if isValidId(checkinId);
+      allow create: if isValidId(checkinId) && isValidMoodCheckIn(incoming());
+      allow update: if isValidId(checkinId) && isValidMoodCheckIn(incoming())
+        && incoming().id == existing().id
+        && incoming().studentId == existing().studentId;
+      allow delete: if isValidId(checkinId);
+    }
+
+    // 2. Approved Wellness Summaries (Abstracted themes, NO raw journals)
+    function isValidWellnessSummary(data) {
+      return data.keys().hasAll(['id', 'studentId', 'summary', 'sharingConsent', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.summary is string && data.summary.size() <= 1000
+        && data.sharingConsent is bool && data.sharingConsent == true
+        && (!('possibleMood' in data) || (data.possibleMood is string && data.possibleMood.size() <= 64))
+        && (!('themes' in data) || (data.themes is list && data.themes.size() <= 20))
+        && (!('stressIndicators' in data) || (data.stressIndicators is list && data.stressIndicators.size() <= 20))
+        && (!('confidence' in data) || (data.confidence is string && data.confidence.size() <= 128))
+        && (!('reflectionSuggestion' in data) || (data.reflectionSuggestion is string && data.reflectionSuggestion.size() <= 500))
+        && (!('uncertaintyNote' in data) || (data.uncertaintyNote is string && data.uncertaintyNote.size() <= 500))
+        && (!('source' in data) || (data.source is string && data.source.size() <= 64))
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /wellness_summaries/{summaryId} {
+      allow read: if isValidId(summaryId);
+      allow create: if isValidId(summaryId) && isValidWellnessSummary(incoming());
+      allow update: if isValidId(summaryId) && isValidWellnessSummary(incoming())
+        && incoming().id == existing().id
+        && incoming().studentId == existing().studentId;
+      allow delete: if isValidId(summaryId);
+    }
+
+    // 3. Mentor Care Messages & Student Replies
+    function isValidMentorMessage(data) {
+      return data.keys().hasAll(['id', 'studentId', 'mentorId', 'message', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.mentorId is string && data.mentorId.size() <= 128
+        && data.message is string && data.message.size() <= 1000
+        && (!('mentorName' in data) || (data.mentorName is string && data.mentorName.size() <= 128))
+        && (!('mentorRole' in data) || (data.mentorRole is string && data.mentorRole.size() <= 128))
+        && (!('readAt' in data) || (data.readAt == null || (data.readAt is string && data.readAt.size() <= 64)))
+        && (!('studentReply' in data) || (data.studentReply is string && data.studentReply.size() <= 1000))
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    match /mentor_messages/{messageId} {
+      allow read: if isValidId(messageId);
+      allow create: if isValidId(messageId) && isValidMentorMessage(incoming());
+      allow update: if isValidId(messageId) && isValidMentorMessage(incoming())
+        && incoming().id == existing().id
+        && incoming().studentId == existing().studentId;
+      allow delete: if isValidId(messageId);
+    }
+
+    // 4. Student Profiles (Cohort trends & privacy toggles)
+    function isValidStudentProfile(data) {
+      return data.keys().hasAll(['id', 'anonymousId', 'displayName', 'identitySharingConsent', 'patternStatus'])
+        && data.id is string && data.id.size() <= 128
+        && data.anonymousId is string && data.anonymousId.size() <= 128
+        && data.displayName is string && data.displayName.size() <= 128
+        && data.identitySharingConsent is bool
+        && data.patternStatus is string && data.patternStatus.size() <= 64
+        && (!('department' in data) || (data.department is string && data.department.size() <= 128))
+        && (!('year' in data) || (data.year is string && data.year.size() <= 64))
+        && (!('consentUpdatedAt' in data) || (data.consentUpdatedAt is string && data.consentUpdatedAt.size() <= 64))
+        && (!('recentTrend' in data) || (data.recentTrend is string && data.recentTrend.size() <= 256))
+        && (!('activitySummary' in data) || (data.activitySummary is string && data.activitySummary.size() <= 500))
+        && (!('suggestedAction' in data) || (data.suggestedAction is string && data.suggestedAction.size() <= 500))
+        && (!('limitedSummary' in data) || (data.limitedSummary is string && data.limitedSummary.size() <= 500))
+        && (!('unreadMessagesCount' in data) || (data.unreadMessagesCount is number));
+    }
+
+    match /students/{studentId} {
+      allow read: if isValidId(studentId);
+      allow create: if isValidId(studentId) && isValidStudentProfile(incoming());
+      allow update: if isValidId(studentId) && isValidStudentProfile(incoming())
+        && incoming().id == existing().id;
+      allow delete: if isValidId(studentId);
+    }
+  }
+}
