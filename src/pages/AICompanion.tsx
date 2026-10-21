@@ -604,10 +604,18 @@ export const AICompanion: React.FC = () => {
       }
 
       if (!response.ok) {
-        const errorDesc =
-          data.details ||
-          data.error ||
-          `Server returned status ${response.status}. Please check your connection and retry.`;
+        let errorDesc = data.details || data.error;
+        if (!errorDesc) {
+          if (response.status === 404) {
+            errorDesc =
+              'Server returned status 404. On Vercel, ensure vercel.json and api/index.ts are deployed and GEMINI_API_KEY is set in your Vercel Project Settings.';
+          } else if (response.status === 503) {
+            errorDesc =
+              'GEMINI_API_KEY is not configured on the server. Please add GEMINI_API_KEY in your Vercel Project Settings > Environment Variables.';
+          } else {
+            errorDesc = `Server returned status ${response.status}. Please check your connection and retry.`;
+          }
+        }
         throw new Error(errorDesc);
       }
 

@@ -15,6 +15,18 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json({ limit: '1mb' }));
 
+// Normalize incoming path for serverless/Vercel environments and catch-all routes
+app.use((req, res, next) => {
+  if (req.query && (req.query.all || req.query.slug || req.query.path)) {
+    const param = req.query.all || req.query.slug || req.query.path;
+    const slug = Array.isArray(param) ? param.join('/') : String(param);
+    if (slug && !req.url.includes(slug)) {
+      req.url = `/${slug.replace(/^\/+/, '')}`;
+    }
+  }
+  next();
+});
+
 // Initialize Gemini SDK if API key is configured
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -35,26 +47,33 @@ function resolveGeminiModel(): string {
 
 export const GEMINI_MODEL = resolveGeminiModel();
 let ai: GoogleGenAI | null = null;
-const isGeminiAvailable = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== 'MY_GEMINI_API_KEY');
 
-if (isGeminiAvailable) {
-  try {
-    ai = new GoogleGenAI({
-      apiKey: apiKey!,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    });
-    console.log(`Gemini AI Provider initialized successfully with model ${GEMINI_MODEL} (AI Mode enabled).`);
-  } catch (err) {
-    console.warn('Failed to initialize GoogleGenAI client, falling back to Demo Mode:', err);
-    ai = null;
+export function getAIClient(): GoogleGenAI | null {
+  const currentKey = process.env.GEMINI_API_KEY;
+  if (!currentKey || currentKey.trim() === '' || currentKey === 'MY_GEMINI_API_KEY') {
+    return null;
   }
-} else {
-  console.log('No valid GEMINI_API_KEY found. Operating in Demo Mode with local deterministic engine.');
+  if (!ai) {
+    try {
+      ai = new GoogleGenAI({
+        apiKey: currentKey.trim(),
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
+      });
+      console.log(`Gemini AI Provider initialized successfully with model ${GEMINI_MODEL} (AI Mode enabled).`);
+    } catch (err) {
+      console.warn('Failed to initialize GoogleGenAI client, falling back to Demo Mode:', err);
+      ai = null;
+    }
+  }
+  return ai;
 }
+
+// Initialize on load if key is available
+getAIClient();
 
 // Timeout helper to guarantee responsiveness even under network latency
 function callWithTimeout<T>(promise: Promise<T>, timeoutMs: number = 45000): Promise<T> {
@@ -72,7 +91,8 @@ async function generateContentSafely(params: {
   preferredModel?: string;
   timeoutMs?: number;
 }) {
-  if (!ai) throw new Error('Gemini AI is not initialized.');
+  const client = getAIClient();
+  if (!client) throw new Error('Gemini AI is not initialized.');
 
   // Candidate models in preference order (valid names only)
   const candidateModels = [
@@ -97,7 +117,7 @@ async function generateContentSafely(params: {
   for (const modelName of candidateModels) {
     try {
       return await callWithTimeout(
-        ai.models.generateContent({
+        client.models.generateContent({
           model: modelName,
           contents: params.contents,
           config: params.config,
@@ -379,19 +399,20 @@ function deterministicPrivacyTransformation(text: string, studentToken: string =
 // ============================================================================
 
 // Status & Health Check
-app.get('/api/status', (req, res) => {
-  const mode = ai ? 'ai' : 'demo';
+app.get(['/api/status', '/status', '/api', '/api/'], (req, res) => {
+  const client = getAIClient();
+  const mode = client ? 'ai' : 'demo';
   res.json({
     status: 'ok',
     mode,
-    geminiConfigured: Boolean(ai),
-    activeProvider: ai ? `Google Gemini (${GEMINI_MODEL}) (Server-Side)` : 'Deterministic Local Engine (Demo Mode)',
+    geminiConfigured: Boolean(client),
+    activeProvider: client ? `Google Gemini (${GEMINI_MODEL}) (Server-Side)` : 'Deterministic Local Engine (Demo Mode)',
     timestamp: new Date().toISOString(),
   });
 });
 
 // Analyze Journal Reflection endpoint (Mood, Stress, Themes, Reflection Suggestion)
-app.post('/api/analyze-reflection', async (req, res) => {
+app.post(['/api/analyze-reflection', '/analyze-reflection'], async (req, res) => {
   try {
     const { text } = req.body;
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -399,9 +420,10 @@ app.post('/api/analyze-reflection', async (req, res) => {
     }
 
     const sanitizedText = text.slice(0, 3000);
+    const client = getAIClient();
 
     // AI Mode: If Gemini is initialized, request structured output
-    if (ai) {
+    if (client) {
       try {
         const response = await generateContentSafely({
           preferredModel: GEMINI_MODEL,
@@ -498,7 +520,7 @@ ${sanitizedText}
 });
 
 // Privacy-Aware Summary Generation endpoint
-app.post('/api/privacy-summary', async (req, res) => {
+app.post(['/api/privacy-summary', '/privacy-summary'], async (req, res) => {
   try {
     const { text, studentToken = 'Student #03' } = req.body;
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -506,9 +528,10 @@ app.post('/api/privacy-summary', async (req, res) => {
     }
 
     const sanitizedText = text.slice(0, 3000);
+    const client = getAIClient();
 
     // AI Mode: Use Gemini to identify PII, redact, and generate mentor-safe abstracted briefing
-    if (ai) {
+    if (client) {
       try {
         const response = await generateContentSafely({
           preferredModel: GEMINI_MODEL,
@@ -613,7 +636,7 @@ ${sanitizedText}
 });
 
 // Mood Pattern Insights endpoint (Optional reflection on self-reported check-in history)
-app.post('/api/mood-insights', async (req, res) => {
+app.post(['/api/mood-insights', '/mood-insights'], async (req, res) => {
   try {
     const { history } = req.body;
     if (!Array.isArray(history) || history.length === 0) {
@@ -621,9 +644,10 @@ app.post('/api/mood-insights', async (req, res) => {
     }
 
     const recentItems = history.slice(-14);
+    const client = getAIClient();
 
     // AI Mode: Call Gemini with structured schema
-    if (ai) {
+    if (client) {
       try {
         const historyText = recentItems
           .map(
@@ -746,10 +770,13 @@ CRITICAL SAFETY & PRIVACY RULES:
 });
 
 // AI Reflection Companion Chat endpoint
-app.post('/api/chat-companion', async (req, res) => {
+app.post(['/api/chat-companion', '/chat-companion', '/api', '/'], async (req, res, next) => {
   try {
-    const { message, history } = req.body;
+    const { message, history } = req.body || {};
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      if (req.path === '/' || req.path === '/api' || req.path === '/api/') {
+        return next();
+      }
       return res.status(400).json({ error: 'Message content is required.' });
     }
 
@@ -761,8 +788,10 @@ app.post('/api/chat-companion', async (req, res) => {
         lower
       );
 
+    const client = getAIClient();
+
     // AI Mode: If Gemini is initialized, generate dynamic response
-    if (ai) {
+    if (client) {
       try {
         const systemInstruction = `You are Sahayak AI Companion, an intelligent, helpful, conversational assistant available to college students.
 
@@ -910,6 +939,10 @@ Your goal is to provide answers that directly address the user's intent, with th
   }
 });
 
+// Export app for Vercel Serverless Function entry point
+export { app };
+export default app;
+
 // Setup Vite in development or serve static in production
 async function startServer() {
   if (!isProduction) {
@@ -932,4 +965,7 @@ async function startServer() {
   });
 }
 
-startServer();
+// In serverless environments (like Vercel), the runtime manages execution and routing
+if (!process.env.VERCEL) {
+  startServer();
+}
