@@ -17,7 +17,23 @@ app.use(express.json({ limit: '1mb' }));
 
 // Initialize Gemini SDK if API key is configured
 const apiKey = process.env.GEMINI_API_KEY;
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+
+function resolveGeminiModel(): string {
+  const envModel = process.env.GEMINI_MODEL?.trim();
+  // Valid model names must start with 'gemini-', not be an API key string, and not be deprecated gemini-2.5-flash
+  if (
+    envModel &&
+    envModel.startsWith('gemini-') &&
+    envModel !== 'gemini-2.5-flash' &&
+    !envModel.includes('AQ.') &&
+    envModel.length < 40
+  ) {
+    return envModel;
+  }
+  return 'gemini-3.8-flash';
+}
+
+export const GEMINI_MODEL = resolveGeminiModel();
 let ai: GoogleGenAI | null = null;
 const isGeminiAvailable = Boolean(apiKey && apiKey.trim() !== '' && apiKey !== 'MY_GEMINI_API_KEY');
 
@@ -57,51 +73,43 @@ async function generateContentSafely(params: {
   timeoutMs?: number;
 }) {
   if (!ai) throw new Error('Gemini AI is not initialized.');
-  const primaryModel = params.preferredModel || GEMINI_MODEL;
-  try {
-    return await callWithTimeout(
-      ai.models.generateContent({
-        model: primaryModel,
-        contents: params.contents,
-        config: params.config,
-      }),
-      params.timeoutMs || 45000
-    );
-  } catch (err: any) {
-    const isTemporaryFailure =
-      err?.status === 404 ||
-      err?.status === 429 ||
-      err?.status === 503 ||
-      (typeof err?.message === 'string' &&
-        (err.message.includes('Quota exceeded') ||
-          err.message.includes('RESOURCE_EXHAUSTED') ||
-          err.message.includes('high demand') ||
-          err.message.includes('UNAVAILABLE') ||
-          err.message.includes('not found') ||
-          err.message.includes('NOT_FOUND')));
-    if (isTemporaryFailure && primaryModel !== 'gemini-3.1-flash-lite') {
-      console.warn(`Primary model ${primaryModel} failed or busy, falling back to gemini-3.1-flash-lite...`);
+
+  // Candidate models in preference order (valid names only)
+  const candidateModels = [
+    params.preferredModel,
+    GEMINI_MODEL,
+    'gemini-3.8-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3-flash-preview',
+  ].filter((m, idx, arr): m is string =>
+    Boolean(
+      m &&
+      typeof m === 'string' &&
+      m.startsWith('gemini-') &&
+      m !== 'gemini-2.5-flash' &&
+      !m.includes('AQ.') &&
+      m.length < 40 &&
+      arr.indexOf(m) === idx
+    )
+  );
+
+  let lastError: any = null;
+  for (const modelName of candidateModels) {
+    try {
       return await callWithTimeout(
         ai.models.generateContent({
-          model: 'gemini-3.1-flash-lite',
+          model: modelName,
           contents: params.contents,
           config: params.config,
         }),
-        params.timeoutMs || 30000
+        params.timeoutMs || 45000
       );
-    } else if (isTemporaryFailure && primaryModel !== 'gemini-3.8-flash') {
-      console.warn(`Primary model ${primaryModel} failed or busy, falling back to gemini-3.8-flash...`);
-      return await callWithTimeout(
-        ai.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: params.contents,
-          config: params.config,
-        }),
-        params.timeoutMs || 30000
-      );
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`Model ${modelName} failed (${err?.status || err?.message || 'error'}), attempting next fallback model...`);
     }
-    throw err;
   }
+  throw lastError;
 }
 
 // ============================================================================
