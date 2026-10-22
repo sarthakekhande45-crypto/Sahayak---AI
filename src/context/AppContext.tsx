@@ -89,7 +89,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     status: 'ok',
     mode: 'demo',
     geminiConfigured: false,
-    activeProvider: 'Deterministic Local Engine (Demo Mode)',
+    activeProvider: 'Google Gemini (gemini-3.8-flash)',
     timestamp: new Date().toISOString(),
   });
 

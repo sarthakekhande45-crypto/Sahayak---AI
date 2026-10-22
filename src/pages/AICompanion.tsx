@@ -452,8 +452,8 @@ export const AICompanion: React.FC = () => {
     sender: 'companion',
     text: "Namaste! I am Sahayak AI Companion. I am here to help you navigate college life.\n\nYou can ask me about anything:\n* **Academics & Study Strategies:** Explaining complex concepts, Feynman method, memory techniques, study scheduling\n* **Technology & Coding:** Writing code, debugging, architecture, data structures\n* **College Life & Everyday Challenges:** Time management, building confidence, making friends\n* **Mental Wellness & Emotional Balance:** Exam stress, burnout prevention, mindful reflection\n* **General Knowledge & Curiosity:** Science, history, trivia, writing assistance\n\nWhat would you like to explore or discuss right now?",
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    source: aiStatus.geminiConfigured ? 'Google Gemini' : 'Sahayak Engine',
-    mode: aiStatus.mode,
+    source: 'Google Gemini (3.8 Flash)',
+    mode: 'ai',
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
@@ -533,8 +533,8 @@ export const AICompanion: React.FC = () => {
         sender: 'companion',
         text: "New conversation started. I'm ready for your questions—whether you need academic explanations, coding guidance, everyday problem solving, or a supportive pause.\n\nWhat would you like to talk about?",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: aiStatus.geminiConfigured ? 'Google Gemini' : 'Sahayak Engine',
-        mode: aiStatus.mode,
+        source: 'Google Gemini (3.8 Flash)',
+        mode: 'ai',
       },
     ]);
     setInputMessage('');
@@ -628,11 +628,13 @@ export const AICompanion: React.FC = () => {
         throw new Error(errorDesc);
       }
 
-      let botText = data.reply;
+      const botText = data.reply;
       if (!botText || typeof botText !== 'string' || !botText.trim()) {
-        botText = data.error
-          ? `I am currently operating in local offline mode. Feel free to ask about study strategies, exam prep, coding, or managing college stress!`
-          : `Hello! I am your Sahayak AI Companion. How can I help you today? Feel free to ask any question or share what you're working on.`;
+        const errorDesc =
+          data.details ||
+          data.error ||
+          'The AI model did not return a response. Please check your connection and retry.';
+        throw new Error(errorDesc);
       }
 
       const botMsg: ChatMessage = {
@@ -640,8 +642,8 @@ export const AICompanion: React.FC = () => {
         sender: 'companion',
         text: botText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: data.source || 'Deterministic Local Engine',
-        mode: data.mode || 'demo',
+        source: data.source || 'Google Gemini (3.8 Flash)',
+        mode: 'ai',
         isCrisis: data.isCrisis,
         exercise: data.exerciseSuggestion,
       };
@@ -724,18 +726,10 @@ export const AICompanion: React.FC = () => {
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#202B26] tracking-tight">
                 AI Companion
               </h1>
-              <span
-                className={`text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1.5 border ${
-                  aiStatus.geminiConfigured
-                    ? 'bg-[#E3F2E8] text-[#174D3A] border-[#A8C5A0]/60'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
-                }`}
-              >
+              <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1.5 border bg-[#E3F2E8] text-[#174D3A] border-[#A8C5A0]/60">
                 <Sparkles className="w-3 h-3 shrink-0" />
                 <span className="truncate max-w-[210px] sm:max-w-none">
-                  {aiStatus.geminiConfigured
-                    ? 'Powered by Google Gemini (Live AI)'
-                    : 'Offline Demo Mode'}
+                  Powered by Google Gemini (3.8 Flash)
                 </span>
               </span>
             </div>
@@ -948,7 +942,7 @@ export const AICompanion: React.FC = () => {
                     <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-2 border-t border-neutral-100 flex-wrap gap-2">
                       <div className="flex items-center gap-1.5">
                         <Sparkles className="w-3 h-3 text-[#174D3A]" />
-                        <span>{msg.mode === 'ai' ? `Google Gemini (${msg.source || '3.8 Flash'})` : 'Demo Engine'}</span>
+                        <span>Google Gemini ({msg.source || '3.8 Flash'})</span>
                       </div>
 
                       <div className="flex items-center gap-1.5">

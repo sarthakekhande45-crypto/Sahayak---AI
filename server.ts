@@ -81,18 +81,7 @@ let ai: GoogleGenAI | null = null;
 export function isValidGeminiKey(key?: string | null): boolean {
   if (!key || typeof key !== 'string') return false;
   const cleaned = key.trim().replace(/^["']|["']$/g, '');
-  if (
-    cleaned === '' ||
-    cleaned === 'MY_GEMINI_API_KEY' ||
-    cleaned === 'YOUR_API_KEY' ||
-    cleaned.startsWith('AQ.') || // Unsupported OAuth/internal token format that Google Generative Language API rejects with 401
-    cleaned.startsWith('ya29.') || // Google OAuth token prefix
-    !cleaned.startsWith('AIza') || // Official Google AI Studio API keys always begin with 'AIza'
-    cleaned.length < 25
-  ) {
-    return false;
-  }
-  return true;
+  return cleaned.length > 10 && cleaned !== 'MY_GEMINI_API_KEY' && cleaned !== 'YOUR_API_KEY';
 }
 
 export function getAIClient(): GoogleGenAI | null {
@@ -119,9 +108,9 @@ export function getAIClient(): GoogleGenAI | null {
           },
         },
       });
-      console.log(`Gemini AI Provider initialized successfully with model ${GEMINI_MODEL} (AI Mode enabled).`);
+      console.log(`Gemini AI Provider initialized successfully with model ${GEMINI_MODEL}.`);
     } catch (err) {
-      console.warn('Failed to initialize GoogleGenAI client, falling back to Demo Mode:', err);
+      console.warn('Failed to initialize GoogleGenAI client:', err);
       ai = null;
     }
   }
@@ -471,7 +460,7 @@ app.get(['/api/status', '/status', '/api', '/api/'], (req, res) => {
     status: 'ok',
     mode,
     geminiConfigured: Boolean(client),
-    activeProvider: client ? `Google Gemini (${GEMINI_MODEL}) (Server-Side)` : 'Deterministic Local Engine (Demo Mode)',
+    activeProvider: client ? `Google Gemini (${GEMINI_MODEL}) (Server-Side)` : `Google Gemini (${GEMINI_MODEL})`,
     timestamp: new Date().toISOString(),
   });
 });
@@ -862,125 +851,7 @@ app.post(['/api/verify-consent-share', '/verify-consent-share'], (req, res) => {
   }
 });
 
-// Deterministic conversational response generator for Demo Mode / fallback
-function generateDeterministicCompanionReply(message: string, history?: any[]): string {
-  const lower = message.toLowerCase().trim();
-
-  // Greetings
-  if (lower === 'hii' || lower === 'hi' || lower === 'hello' || lower === 'hey' || lower === 'namaste') {
-    return `Hello! I am your Sahayak AI Companion.
-
-I'm here to support you with anything on your mind during college—whether that's:
-• **Academic & Exam Strategies**: Structuring study plans, active recall, handling deadline pressure.
-• **Technology & Coding**: Debugging concepts, data structures, project pacing.
-• **College Life & Everyday Routine**: Time management, sleep boundaries, balancing social life.
-• **Emotional Balance & Stress**: Gentle grounding when things feel overwhelming.
-
-What is on your mind today? Feel free to ask any question or share what you're working on.`;
-  }
-
-  // Study plans & exam pressure
-  if (
-    lower.includes('study plan') ||
-    lower.includes('exam') ||
-    lower.includes('feynman') ||
-    lower.includes('revision') ||
-    lower.includes('pomodoro') ||
-    lower.includes('how to study')
-  ) {
-    return `Here is a structured, proven approach to organizing your study sessions:
-
-### 1. The 3-Step Focus Framework
-1. **Target a Single Concept**: Pick one specific module or topic rather than trying to study the whole syllabus in one sitting.
-2. **25/5 Pomodoro Cycle**: Work with single-minded focus for 25 minutes, then take a mandatory 5-minute break away from screens.
-3. **The Feynman Technique**: After reading a chapter, close your notes and explain the core idea out loud in simple, everyday words as if teaching a peer. If you stumble, that reveals your exact learning gap.
-
-### 2. Pacing Tip
-Never sacrifice sleep for all-nighters—sleep consolidation is when your brain actually commits short-term study into long-term recall.
-
-What specific subject or topic are you preparing for right now?`;
-  }
-
-  // Stress / anxiety / exhaustion
-  if (
-    lower.includes('stress') ||
-    lower.includes('anxious') ||
-    lower.includes('overwhelm') ||
-    lower.includes('tired') ||
-    lower.includes('exhaust') ||
-    lower.includes('burnout')
-  ) {
-    return `I hear you, and it is completely normal to feel this way under college pressures.
-
-When everything feels like it is demanding your attention at once, your nervous system gets overloaded. Here is a quick 2-minute reset you can do right now:
-
-### Box Breathing Exercise (4-4-4-4)
-1. **Inhale** gently through your nose for **4 seconds**.
-2. **Hold** your breath calmly for **4 seconds**.
-3. **Exhale** slowly through your mouth for **4 seconds**.
-4. **Pause** at the bottom for **4 seconds**.
-*Repeat this cycle 3 times.*
-
-### One Small Next Step
-Choose just **one single 10-minute task** to do today. Give yourself permission to pause the rest until tomorrow.
-
-Would you like to talk through what feels heaviest on your plate right now?`;
-  }
-
-  // Coding / programming
-  if (
-    lower.includes('reverse string') ||
-    lower.includes('javascript') ||
-    lower.includes('python') ||
-    lower.includes('code') ||
-    lower.includes('coding') ||
-    lower.includes('bug')
-  ) {
-    return `Here is how you can approach that technical question:
-
-### In JavaScript:
-\`\`\`javascript
-function reverseString(str) {
-  // Split into characters, reverse array, and join back
-  return str.split('').reverse().join('');
-}
-
-// Or using an in-place two-pointer approach:
-function reverseInPlace(arr) {
-  let left = 0, right = arr.length - 1;
-  while (left < right) {
-    [arr[left], arr[right]] = [arr[right], arr[left]];
-    left++;
-    right--;
-  }
-  return arr;
-}
-\`\`\`
-
-### In Python:
-\`\`\`python
-def reverse_string(s: str) -> str:
-    # Pythonic slice syntax O(n)
-    return s[::-1]
-\`\`\`
-
-Is there a specific programming language, algorithmic constraint, or data structure you'd like to explore further?`;
-  }
-
-  // General questions / default response
-  return `Thank you for sharing that question!
-
-I am Sahayak AI Companion, designed to assist you with academics, study strategies, technology, everyday college challenges, and personal development.
-
-Here are a few ways we can break this down:
-1. **Identify the core goal**: What outcome are you looking to achieve?
-2. **Break into actionable steps**: Tackle the immediate next action first.
-3. **Review and reflect**: Check in on how you're pacing yourself throughout.
-
-Tell me a bit more about what you'd like to dive into, and we'll work through it together step by step!`;
-}
-
-// AI Reflection Companion Chat endpoint
+// AI Reflection Companion Chat endpoint (Powered exclusively by Google Gemini)
 app.post(['/api/chat-companion', '/chat-companion', '/api', '/'], async (req, res, next) => {
   try {
     const { message, history } = req.body || {};
@@ -1001,10 +872,15 @@ app.post(['/api/chat-companion', '/chat-companion', '/api', '/'], async (req, re
 
     const client = getAIClient();
 
-    // AI Mode: If Gemini is initialized, generate dynamic response
-    if (client) {
-      try {
-        const systemInstruction = `You are Sahayak AI Companion, an intelligent, helpful, conversational assistant available to college students.
+    if (!client) {
+      return res.status(503).json({
+        error:
+          'Gemini API key is not configured on the server. Please set GEMINI_API_KEY in your server environment variables.',
+        details: 'Missing GEMINI_API_KEY environment variable on server.',
+      });
+    }
+
+    const systemInstruction = `You are Sahayak AI Companion, an intelligent, helpful, conversational assistant available to college students.
 
 Your primary responsibility is to understand the student's actual question and provide the most relevant, accurate, and useful response you can.
 
@@ -1013,141 +889,124 @@ You are not restricted to mental wellness topics. Students may ask about academi
 RESPONSE RULES:
 
 1. Understand the specific question before answering. Never respond with a generic mental wellness message when the user has asked a different question.
+   - For science questions (e.g., photosynthesis, cellular respiration, physics, biology, chemistry): Provide a clear, detailed, accurate scientific explanation covering definitions, mechanisms, and key stages or equations.
+   - For programming & STEM questions: Provide real code examples, correct syntax, algorithmic complexity, and explanations.
+   - For academic pacing and study questions: Provide concrete methods (active recall, spaced repetition, Feynman technique).
+   - For student life, stress, or emotional difficulties: Be empathetic, nonjudgmental, and encouraging.
 
-2. Generate a fresh, contextually relevant answer for every message. Never reuse a fixed response merely because a question was received.
+2. Generate a fresh, contextually relevant answer for every message. Never reuse a fixed response.
 
-3. Answer simple questions directly and concisely. For complex questions, provide a detailed, structured explanation with examples and actionable steps.
+3. Answer simple questions directly and concisely. For complex questions, provide a detailed, structured explanation with headings, examples, and actionable steps.
 
-4. When appropriate, use headings, numbered steps, bullet points, examples, comparisons, and summaries to make long answers easier to understand.
+4. When appropriate, use Markdown headings (###), numbered steps, bullet points, code blocks, and bold key terms to make explanations easy to read.
 
-5. Use the conversation history to understand references such as 'explain that again', 'give an example', or 'what should I do next?'.
+5. Use the conversation history to understand context.
 
-6. Ask a clarifying question only when necessary. Otherwise, make reasonable assumptions and provide a useful answer.
+6. Be honest about uncertainty. Never invent facts, sources, or capabilities.
 
-7. Be honest about uncertainty. Never invent facts, sources, capabilities, or actions.
+7. When discussing emotions or personal difficulties, be empathetic. Do not diagnose mental health conditions or claim to replace a qualified professional.
 
-8. Match the student's language and level of understanding. Explain technical concepts clearly without being condescending.
-
-9. When discussing emotions or personal difficulties, be empathetic and nonjudgmental. Do not diagnose mental health conditions or claim to replace a qualified professional.
-
-10. Do not turn every conversation into therapy. Be a capable general-purpose assistant that can also provide supportive mental wellness guidance when relevant.
-
-11. If a question requires current information that you cannot verify, explain the limitation instead of presenting outdated information as current.
-
-12. Do not automatically reveal private conversation content to mentors or other users.
-
-13. If the student describes immediate danger, respond with supportive, safety-focused guidance and encourage contacting a trusted person or appropriate local emergency support:
+8. If the student describes immediate danger or crisis, respond with supportive, safety-focused guidance and encourage contacting a trusted person or appropriate local emergency support:
     - India: Tele-MANAS (14416 or 1800-891-4416) or KIRAN (1800-599-0019)
     - US/Canada: 988 Suicide & Crisis Lifeline (call/text 988)
     - Emergency dispatch: 112 (India) or 911 (US)
 
-14. Never claim that you searched the web, accessed an external account, or performed an action unless that capability was actually used.
-
 Your goal is to provide answers that directly address the user's intent, with the depth, accuracy, empathy, and clarity appropriate to each question.`;
 
-        // Format conversation history for Gemini multi-turn chat
-        const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+    // Format conversation history for Gemini multi-turn chat
+    const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
-        if (Array.isArray(history)) {
-          for (const h of history.slice(-16)) {
-            if (!h || typeof h.text !== 'string' || !h.text.trim()) continue;
-            const role: 'user' | 'model' =
-              h.role === 'user' || h.sender === 'student' ? 'user' : 'model';
-            const cleanText = h.text.trim();
+    if (Array.isArray(history)) {
+      for (const h of history.slice(-16)) {
+        if (!h || typeof h.text !== 'string' || !h.text.trim()) continue;
+        const role: 'user' | 'model' =
+          h.role === 'user' || h.sender === 'student' ? 'user' : 'model';
+        const cleanText = h.text.trim();
 
-            if (contents.length === 0) {
-              if (role === 'user') {
-                contents.push({ role: 'user', parts: [{ text: cleanText }] });
-              }
-              // Skip leading model turns to ensure conversations start with user
-            } else {
-              const lastTurn = contents[contents.length - 1];
-              if (lastTurn.role === role) {
-                lastTurn.parts[0].text += `\n\n${cleanText}`;
-              } else {
-                contents.push({ role, parts: [{ text: cleanText }] });
-              }
-            }
+        if (contents.length === 0) {
+          if (role === 'user') {
+            contents.push({ role: 'user', parts: [{ text: cleanText }] });
           }
-        }
-
-        // Gemini multi-turn requires the first turn to be 'user'
-        while (contents.length > 0 && contents[0].role !== 'user') {
-          contents.shift();
-        }
-
-        // Append the student's current message
-        if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-          contents[contents.length - 1].parts[0].text += `\n\n${trimmedMsg}`;
         } else {
-          contents.push({ role: 'user', parts: [{ text: trimmedMsg }] });
-        }
-
-        const response = await generateContentSafely({
-          preferredModel: GEMINI_MODEL,
-          contents,
-          config: {
-            systemInstruction,
-            temperature: 0.7,
-          },
-          timeoutMs: 45000,
-        });
-
-        let reply = response.text?.trim();
-        if (!reply && response.candidates?.[0]?.content?.parts) {
-          reply = response.candidates[0].content.parts
-            .map((p: any) => p.text)
-            .filter(Boolean)
-            .join('\n')
-            .trim();
-        }
-
-        if (!reply) {
-          const finishReason = response.candidates?.[0]?.finishReason;
-          if (finishReason === 'SAFETY') {
-            reply =
-              'I am unable to answer this specific query due to safety considerations. Please feel free to ask another question or rephrase your inquiry.';
+          const lastTurn = contents[contents.length - 1];
+          if (lastTurn.role === role) {
+            lastTurn.parts[0].text += `\n\n${cleanText}`;
           } else {
-            throw new Error('Gemini API returned an empty response.');
+            contents.push({ role, parts: [{ text: cleanText }] });
           }
         }
-
-        return res.json({
-          reply,
-          source: GEMINI_MODEL,
-          mode: 'ai',
-          isCrisis,
-        });
-      } catch (geminiError: any) {
-        console.warn('Gemini companion chat fallback to deterministic engine:', geminiError?.message || geminiError);
-        const fallbackReply = generateDeterministicCompanionReply(trimmedMsg, history);
-        return res.json({
-          reply: fallbackReply,
-          source: 'Deterministic Local Engine',
-          mode: 'demo',
-          isCrisis,
-        });
       }
     }
 
-    // Offline Demo Mode (when no live GEMINI_API_KEY is configured)
-    if (isCrisis) {
-      return res.json({
-        reply:
-          'I hear how much pain you are carrying right now, and I want you to know that you do not have to walk through this alone. Because I am an AI companion and not a medical or emergency service, please connect with someone who can support you right now. You can reach free, confidential 24/7 support at 988 (US/Canada) or 14416 / 1800-891-4416 (Tele-MANAS, India), or reach emergency services (112 / 911) immediately.',
-        isCrisis: true,
-        source: 'Demo Mode Engine',
-        mode: 'demo',
-      });
+    // Gemini multi-turn requires the first turn to be 'user'
+    while (contents.length > 0 && contents[0].role !== 'user') {
+      contents.shift();
     }
 
-    const reply = generateDeterministicCompanionReply(trimmedMsg, history);
-    return res.json({
-      reply,
-      source: 'Deterministic Local Engine (Demo Mode)',
-      mode: 'demo',
-      isCrisis: false,
-    });
+    // Append the student's current message
+    if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+      contents[contents.length - 1].parts[0].text += `\n\n${trimmedMsg}`;
+    } else {
+      contents.push({ role: 'user', parts: [{ text: trimmedMsg }] });
+    }
+
+    try {
+      const response = await generateContentSafely({
+        preferredModel: GEMINI_MODEL,
+        contents,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        },
+        timeoutMs: 45000,
+      });
+
+      let reply = response.text?.trim();
+      if (!reply && response.candidates?.[0]?.content?.parts) {
+        reply = response.candidates[0].content.parts
+          .map((p: any) => p.text)
+          .filter(Boolean)
+          .join('\n')
+          .trim();
+      }
+
+      if (!reply) {
+        const finishReason = response.candidates?.[0]?.finishReason;
+        if (finishReason === 'SAFETY') {
+          reply =
+            'I am unable to answer this specific query due to safety considerations. Please feel free to rephrase your inquiry.';
+        } else {
+          throw new Error('Gemini API returned an empty response.');
+        }
+      }
+
+      return res.json({
+        reply,
+        source: GEMINI_MODEL,
+        mode: 'ai',
+        isCrisis,
+      });
+    } catch (geminiError: any) {
+      console.error('Gemini companion chat request error:', geminiError);
+      const status = Number(geminiError?.status || geminiError?.statusCode) || 500;
+      const errorMsg = geminiError?.message || String(geminiError);
+
+      let userMessage = errorMsg;
+      if (errorMsg.includes('API key not valid') || errorMsg.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || status === 401) {
+        userMessage =
+          'Gemini API authentication failed (HTTP 401). Please ensure a valid Google AI Studio API key (starts with "AIzaSy...") is configured in your server environment variables (GEMINI_API_KEY).';
+      } else if (errorMsg.includes('SERVICE_DISABLED') || status === 403) {
+        userMessage =
+          'Gemini API is disabled or blocked for this Google Cloud project. Please enable Generative Language API in Google Cloud Console or provide a valid Google AI Studio API key in GEMINI_API_KEY.';
+      } else if (status === 429 || errorMsg.includes('RESOURCE_EXHAUSTED')) {
+        userMessage = 'Gemini API rate limit or quota exceeded. Please wait a moment and click Retry Question.';
+      }
+
+      return res.status(status >= 400 && status < 600 ? status : 500).json({
+        error: userMessage,
+        details: errorMsg,
+      });
+    }
   } catch (error: any) {
     console.error('Error in chat companion endpoint:', error);
     res.status(500).json({ error: 'Internal companion chat error.', details: error?.message });

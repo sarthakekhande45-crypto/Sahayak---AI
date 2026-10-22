@@ -166,7 +166,7 @@ export const AIJournalling: React.FC = () => {
       addWellnessSummary(newSummary);
       showToast(
         `Reflection analyzed via ${
-          data.source === 'gemini-3.8-flash' ? 'Google Gemini 3.8 Flash (AI Mode)' : 'Deterministic Demo Engine'
+          data.source?.startsWith('gemini') ? 'Google Gemini 3.8 Flash (AI Mode)' : 'Secure Local Analyzer'
         }`,
         'success'
       );
@@ -310,7 +310,7 @@ export const AIJournalling: React.FC = () => {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
               <span className="text-[10px] text-neutral-500">
-                {aiStatus.geminiConfigured ? 'Google Gemini 3.8 Flash' : 'Deterministic Local Engine'}
+                {aiStatus.geminiConfigured ? 'Google Gemini 3.8 Flash' : 'Privacy-Preserving Engine'}
               </span>
             </div>
             <button
