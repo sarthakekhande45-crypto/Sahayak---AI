@@ -144,9 +144,6 @@ export const StudentDashboard: React.FC = () => {
     });
   }, [moodHistory, chartRange]);
 
-  // Compute metrics
-  const latestCheckIn = moodHistory[moodHistory.length - 1];
-
   // 7-day average vs previous 7-day average for Drift Detection
   const { driftDetected, recentAvg, earlierAvg } = useMemo(() => {
     const sorted = [...moodHistory].sort(
@@ -167,39 +164,20 @@ export const StudentDashboard: React.FC = () => {
     return { driftDetected: isDrifting, recentAvg: rAvg, earlierAvg: eAvg };
   }, [moodHistory]);
 
-  const sevenDayTrend = useMemo(() => {
-    const recent7 = moodHistory.slice(-7);
-    if (recent7.length === 0) return 'Stable';
-    const sum = recent7.reduce((acc, curr) => acc + curr.moodScore, 0);
-    const avg = sum / recent7.length;
-    if (avg >= 3.6) return 'Generally Positive';
-    if (avg >= 2.6) return 'Even & Moderate';
-    return 'Dipping recently';
-  }, [moodHistory]);
-
-  const journallingDaysCount = useMemo(() => {
-    const uniqueDates = new Set(
-      journalEntries.map((j) => j.createdAt.split('T')[0])
-    );
-    return uniqueDates.size;
-  }, [journalEntries]);
-
-  const latestReflection = journalEntries[0];
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Top Welcome Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-neutral-200/80">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#202B26] tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#202B26] tracking-tight">
               Hello, Alex 👋
             </h1>
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#E3F2E8] text-[#174D3A] border border-[#A8C5A0]/60">
               Sample Student (Demo)
             </span>
           </div>
-          <p className="text-sm text-neutral-600 mt-1">
+          <p className="text-xs sm:text-sm text-neutral-600 mt-1">
             Take a moment for yourself. How are you feeling today?
           </p>
         </div>
@@ -208,27 +186,27 @@ export const StudentDashboard: React.FC = () => {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setCurrentPage('ai-companion')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#174D3A] text-white rounded-xl text-xs font-semibold hover:bg-[#123E2F] transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#174D3A] text-white rounded-xl text-xs font-semibold hover:bg-[#123E2F] transition-all shadow-xs cursor-pointer min-h-[40px]"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             <span>AI Companion</span>
           </button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl border border-neutral-200 text-xs text-neutral-600">
-            <Lock className="w-3.5 h-3.5 text-[#174D3A]" />
-            <span>Private Mode active · Never shared with mentors</span>
+            <Lock className="w-3.5 h-3.5 text-[#174D3A] shrink-0" />
+            <span className="truncate">Private Mode active · Never shared</span>
           </div>
         </div>
       </div>
 
       {/* Gentle Drift / Pattern Change Indicator if detected */}
       {driftDetected && (
-        <div className="bg-[#FFFBEB] border border-amber-200/90 rounded-2xl p-5 shadow-2xs flex flex-col sm:flex-row items-start justify-between gap-4">
+        <div className="bg-[#FFFBEB] border border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0 mt-0.5">
               <TrendingDown className="w-5 h-5 text-[#D97706]" />
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-bold text-amber-900">Pattern change noticed</h3>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 bg-amber-200/70 text-amber-900 rounded">
                   Self-Reported Trend
@@ -244,17 +222,17 @@ export const StudentDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
             <button
               onClick={() => setCurrentPage('ai-companion')}
-              className="px-4 py-2 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#123E2F] transition-colors whitespace-nowrap shadow-2xs cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#123E2F] transition-colors whitespace-nowrap shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Talk with Companion</span>
             </button>
             <button
               onClick={() => setCurrentPage('journalling')}
-              className="px-4 py-2 rounded-xl bg-white border border-amber-300 text-xs font-semibold text-amber-900 hover:bg-amber-100/70 transition-colors whitespace-nowrap shadow-2xs cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl bg-white border border-amber-300 text-xs font-semibold text-amber-900 hover:bg-amber-100/70 transition-colors whitespace-nowrap shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               <BookOpen className="w-3.5 h-3.5 text-[#174D3A]" />
               <span>Reflect in Journal</span>
@@ -264,28 +242,28 @@ export const StudentDashboard: React.FC = () => {
       )}
 
       {/* Grid: Mood Check-In & Growth Tree */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
         {/* Section A: Today's Mood Check-in Form */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs space-y-6">
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 shadow-xs space-y-5 sm:space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
             <div>
               <span className="text-xs font-semibold tracking-wider text-[#174D3A] uppercase">
                 Daily Check-In
               </span>
-              <h2 className="text-lg font-bold text-[#202B26] mt-0.5">
+              <h2 className="text-base sm:text-lg font-bold text-[#202B26] mt-0.5">
                 How is your energy right now?
               </h2>
             </div>
             <span className="text-xs text-neutral-400">Voluntary &amp; Private</span>
           </div>
 
-          <form onSubmit={handleSaveMood} className="space-y-6">
-            {/* 5 Mood Buttons */}
+          <form onSubmit={handleSaveMood} className="space-y-5 sm:space-y-6">
+            {/* 5 Mood Buttons - Responsive Grid */}
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-2">
                 1. Select baseline mood:
               </label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 min-[440px]:grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-2.5">
                 {MOOD_OPTIONS.map((opt) => {
                   const isSelected = selectedMood === opt.label;
                   return (
@@ -293,7 +271,7 @@ export const StudentDashboard: React.FC = () => {
                       type="button"
                       key={opt.label}
                       onClick={() => setSelectedMood(opt.label)}
-                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 ${
+                      className={`p-2.5 sm:p-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-h-[70px] ${
                         isSelected
                           ? 'border-[#174D3A] bg-[#E3F2E8] shadow-xs ring-2 ring-[#174D3A]/20'
                           : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
@@ -303,13 +281,13 @@ export const StudentDashboard: React.FC = () => {
                         {opt.emoji}
                       </span>
                       <span
-                        className={`text-xs font-semibold ${
+                        className={`text-xs font-bold ${
                           isSelected ? 'text-[#174D3A]' : 'text-[#202B26]'
                         }`}
                       >
                         {opt.label}
                       </span>
-                      <span className="text-[10px] text-neutral-500 hidden sm:block">
+                      <span className="text-[10px] text-neutral-500 leading-tight">
                         {opt.desc}
                       </span>
                     </button>
@@ -323,7 +301,7 @@ export const StudentDashboard: React.FC = () => {
               <label className="block text-xs font-semibold text-neutral-700 mb-2">
                 2. What emotions are present? (Optional)
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {EMOTION_TAGS.map((emotion) => {
                   const isSelected = selectedEmotions.includes(emotion);
                   return (
@@ -331,7 +309,7 @@ export const StudentDashboard: React.FC = () => {
                       type="button"
                       key={emotion}
                       onClick={() => toggleEmotion(emotion)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer min-h-[36px] flex items-center ${
                         isSelected
                           ? 'bg-[#174D3A] text-white shadow-2xs'
                           : 'bg-[#F7F8F4] text-[#202B26] border border-neutral-200 hover:border-neutral-300'
@@ -354,7 +332,7 @@ export const StudentDashboard: React.FC = () => {
                 value={checkInNote}
                 onChange={(e) => setCheckInNote(e.target.value)}
                 placeholder="e.g., Finished morning lab, feeling a bit stretched for time..."
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-neutral-200 bg-[#F7F8F4] focus:bg-white focus:outline-none focus:border-[#174D3A] transition-colors"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-neutral-200 bg-[#F7F8F4] focus:bg-white focus:outline-none focus:border-[#174D3A] transition-colors"
                 maxLength={140}
               />
               <div className="flex justify-between items-center text-[11px] text-neutral-400 mt-1">
@@ -364,13 +342,13 @@ export const StudentDashboard: React.FC = () => {
             </div>
 
             {/* Save Button */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <span className="text-xs text-neutral-500">
                 Updates your 14-day graph and growth tree
               </span>
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#113A2C] transition-all flex items-center gap-1.5 shadow-2xs active:scale-97 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#113A2C] transition-all flex items-center justify-center gap-1.5 shadow-2xs active:scale-97 cursor-pointer min-h-[44px]"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#A8C5A0]" />
                 <span>Save Mood Check-In</span>
@@ -386,84 +364,12 @@ export const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Section B: Wellness Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Today's Mood */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>Today&apos;s Mood</span>
-            <Smile className="w-4 h-4 text-[#174D3A]" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#202B26]">
-              {latestCheckIn ? latestCheckIn.moodLabel : 'None logged'}
-            </span>
-            <span className="text-xs text-neutral-400 font-mono">
-              ({latestCheckIn ? `${latestCheckIn.moodScore}/5` : '—'})
-            </span>
-          </div>
-          <div className="text-xs text-neutral-500">
-            {latestCheckIn?.emotions.length
-              ? latestCheckIn.emotions.slice(0, 2).join(', ')
-              : 'Logged via private check-in'}
-          </div>
-        </div>
-
-        {/* Card 2: 7-Day Trend */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>7-Day Trend</span>
-            <TrendingUp className="w-4 h-4 text-[#174D3A]" />
-          </div>
-          <div className="text-2xl font-bold text-[#202B26]">{sevenDayTrend}</div>
-          <div className="text-xs text-neutral-500">
-            Computed from 7 recent self-reports
-          </div>
-        </div>
-
-        {/* Card 3: Journalling Days */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>Journalling Days</span>
-            <Calendar className="w-4 h-4 text-[#174D3A]" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#202B26] font-mono tabular-nums">
-              {journallingDaysCount}
-            </span>
-            <span className="text-xs text-neutral-500">active days</span>
-          </div>
-          <div className="text-xs text-neutral-500">
-            {journalEntries.length} total private entries
-          </div>
-        </div>
-
-        {/* Card 4: Latest Reflection */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>Latest Reflection</span>
-            <BookOpen className="w-4 h-4 text-[#174D3A]" />
-          </div>
-          <div className="text-sm font-semibold text-[#202B26] truncate">
-            {latestReflection ? latestReflection.title : 'No entries yet'}
-          </div>
-          <div className="text-xs text-neutral-500 flex items-center justify-between">
-            <span>{latestReflection ? latestReflection.createdAt.split('T')[0] : '—'}</span>
-            <button
-              onClick={() => setCurrentPage('journalling')}
-              className="text-[#174D3A] font-semibold hover:underline text-xs"
-            >
-              Open Journal
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Section C: Emotional Wellness Graph (14-day interactive LineChart with Recharts) */}
-      <div className="bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-neutral-100">
+      <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-neutral-100">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold tracking-wider text-[#174D3A] uppercase">
                 Wellness Trajectory
               </span>
@@ -471,16 +377,16 @@ export const StudentDashboard: React.FC = () => {
                 Self-Reported Records
               </span>
             </div>
-            <h2 className="text-lg font-bold text-[#202B26] mt-0.5">
+            <h2 className="text-base sm:text-lg font-bold text-[#202B26] mt-0.5">
               14-Day Emotional Rhythm
             </h2>
           </div>
 
           {/* Timeframe Filter Buttons */}
-          <div className="flex items-center gap-1 p-1 bg-[#F7F8F4] rounded-lg border border-neutral-200">
+          <div className="flex items-center gap-1 p-1 bg-[#F7F8F4] rounded-lg border border-neutral-200 self-start sm:self-auto">
             <button
               onClick={() => setChartRange(7)}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                 chartRange === 7
                   ? 'bg-white text-[#174D3A] shadow-xs'
                   : 'text-neutral-600 hover:text-neutral-900'
@@ -490,7 +396,7 @@ export const StudentDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setChartRange(14)}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                 chartRange === 14
                   ? 'bg-white text-[#174D3A] shadow-xs'
                   : 'text-neutral-600 hover:text-neutral-900'
@@ -501,32 +407,33 @@ export const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recharts Chart Container */}
-        <div className="h-72 w-full">
+        {/* Recharts Chart Container - Scaled for Viewport */}
+        <div className="h-60 sm:h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 10, left: -12, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis
                 dataKey="date"
                 stroke="#888888"
-                fontSize={12}
+                fontSize={11}
                 tickLine={false}
                 axisLine={{ stroke: '#E5E7EB' }}
               />
               <YAxis
                 domain={[1, 5]}
                 ticks={[1, 2, 3, 4, 5]}
+                width={42}
                 stroke="#888888"
-                fontSize={11}
+                fontSize={10}
                 tickLine={false}
                 axisLine={{ stroke: '#E5E7EB' }}
                 tickFormatter={(value) => {
                   const map: Record<number, string> = {
-                    1: 'Very low',
-                    2: 'Low',
-                    3: 'Okay',
-                    4: 'Good',
-                    5: 'Great',
+                    1: '1-Low',
+                    2: '2',
+                    3: '3-Mid',
+                    4: '4',
+                    5: '5-High',
                   };
                   return map[value] || `${value}`;
                 }}
@@ -536,7 +443,7 @@ export const StudentDashboard: React.FC = () => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-white p-3 rounded-xl border border-neutral-200 shadow-lg text-xs space-y-1">
+                      <div className="bg-white p-3 rounded-xl border border-neutral-200 shadow-lg text-xs space-y-1 max-w-[240px] sm:max-w-xs break-words">
                         <div className="font-bold text-[#174D3A]">{data.date}</div>
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-neutral-800">Mood:</span>
@@ -551,7 +458,7 @@ export const StudentDashboard: React.FC = () => {
                           </div>
                         )}
                         {data.note && (
-                          <div className="text-neutral-500 italic max-w-xs mt-1 border-t pt-1">
+                          <div className="text-neutral-500 italic mt-1 border-t pt-1">
                             &ldquo;{data.note}&rdquo;
                           </div>
                         )}
@@ -577,7 +484,7 @@ export const StudentDashboard: React.FC = () => {
 
         {/* Legend & Transparent Explanation */}
         <div className="pt-2 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-neutral-500 gap-2">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-0.5 bg-[#174D3A] inline-block" /> Self-Reported Mood Line
             </span>
@@ -885,7 +792,7 @@ export const StudentDashboard: React.FC = () => {
         </div>
 
           {/* Identity Sharing Toggle for Demo */}
-          <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs">
+          <div className="pt-3 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2.5">
             <div>
               <div className="font-semibold text-[#202B26]">Identity Sharing Consent</div>
               <div className="text-[11px] text-neutral-500">
@@ -896,7 +803,7 @@ export const StudentDashboard: React.FC = () => {
               onClick={() =>
                 toggleIdentitySharing('student-03', !activeStudent.identitySharingConsent)
               }
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer self-start sm:self-auto min-h-[36px] ${
                 activeStudent.identitySharingConsent
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
                   : 'bg-[#F7F8F4] text-neutral-700 border border-neutral-300 hover:bg-neutral-100'

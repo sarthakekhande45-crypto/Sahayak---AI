@@ -575,38 +575,38 @@ export const ShowcaseLab: React.FC = () => {
   }, [selectedDatasetIdx, runGeminiMoodExplainer]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-12">
       {/* ============================================================== */}
       {/* HEADER & GLOBAL AI CONNECTION STATUS BAR                       */}
       {/* ============================================================== */}
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-neutral-200/80">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-neutral-200/80">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <FlaskConical className="w-6 h-6 text-[#174D3A]" />
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#202B26] tracking-tight">
+              <FlaskConical className="w-5 h-5 sm:w-6 sm:h-6 text-[#174D3A] shrink-0" />
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#202B26] tracking-tight break-words">
                 Sahayak Showcase Lab
               </h1>
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E3F2E8] text-[#174D3A] border border-[#A8C5A0]/60">
+              <span className="text-[10px] sm:text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E3F2E8] text-[#174D3A] border border-[#A8C5A0]/60 shrink-0">
                 Interactive Innovation Sandbox
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-600 mt-1 max-w-3xl">
+            <p className="text-xs sm:text-sm text-neutral-600 mt-1 max-w-3xl leading-relaxed">
               Hands-on architectural demonstration proving how configured Google Gemini APIs empower contextual understanding,
               strict privacy redaction barriers, and non-clinical pattern reflections.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
+          <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <button
               onClick={() => refreshAIStatus()}
-              className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200 text-xs font-medium text-neutral-700 hover:bg-[#F7F8F4] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              className="px-3 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-medium text-neutral-700 hover:bg-[#F7F8F4] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs min-h-[40px]"
               title="Ping backend status"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[#174D3A]" />
               <span>Ping Engine</span>
             </button>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E3F2E8] rounded-xl border border-[#A8C5A0]/80 text-xs font-semibold text-[#174D3A]">
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-[#E3F2E8] rounded-xl border border-[#A8C5A0]/80 text-xs font-semibold text-[#174D3A] min-h-[40px]">
               <Shield className="w-3.5 h-3.5" />
               <span>Judges Sandbox</span>
             </div>
@@ -614,29 +614,29 @@ export const ShowcaseLab: React.FC = () => {
         </div>
 
         {/* Connection Status Card */}
-        <div className={`p-4 rounded-2xl border transition-all ${
+        <div className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
           aiStatus.geminiConfigured
             ? 'bg-[#E3F2E8]/60 border-[#A8C5A0] text-[#174D3A]'
             : 'bg-amber-50/70 border-amber-200 text-amber-900'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5">
-              <div className={`w-3 h-3 rounded-full animate-pulse ${
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-3 h-3 rounded-full animate-pulse shrink-0 ${
                 aiStatus.geminiConfigured ? 'bg-emerald-600 ring-4 ring-emerald-200' : 'bg-amber-500 ring-4 ring-amber-200'
               }`} />
-              <div>
+              <div className="min-w-0">
                 <span className="font-bold">Active Engine: </span>
-                <span className="font-mono">{aiStatus.activeProvider}</span>
-                <span className="ml-2 font-normal text-[11px] opacity-80">
+                <span className="font-mono text-xs break-all">{aiStatus.activeProvider}</span>
+                <span className="ml-1 sm:ml-2 font-normal text-[11px] opacity-80 block sm:inline">
                   ({aiStatus.geminiConfigured ? 'Live Server-Side Gemini API' : 'Deterministic Local Fallback Mode'})
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-[11px] font-mono">
+            <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-mono flex-wrap">
               <span>Status: <strong>{aiStatus.status.toUpperCase()}</strong></span>
-              <span>•</span>
-              <span>Verified Protected Endpoints: <strong>3 Active</strong></span>
+              <span className="hidden sm:inline">•</span>
+              <span>Protected Endpoints: <strong>3 Active</strong></span>
             </div>
           </div>
         </div>
@@ -645,7 +645,7 @@ export const ShowcaseLab: React.FC = () => {
       {/* ============================================================== */}
       {/* EXPERIMENT 1: AI vs. KEYWORD DETECTION                         */}
       {/* ============================================================== */}
-      <section className="bg-white rounded-2xl border border-neutral-200/80 p-6 sm:p-8 shadow-xs space-y-6">
+      <section className="bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 md:p-8 shadow-xs space-y-6">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F2E8] text-xs font-bold text-[#174D3A]">
             <Cpu className="w-3.5 h-3.5" />
@@ -880,25 +880,25 @@ export const ShowcaseLab: React.FC = () => {
       {/* ============================================================== */}
       {/* EXPERIMENT 2: PRIVACY TRANSFORMATION LAB                       */}
       {/* ============================================================== */}
-      <section className="bg-white rounded-2xl border border-neutral-200/80 p-6 sm:p-8 shadow-xs space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <section className="bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 md:p-8 shadow-xs space-y-6 sm:space-y-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F2E8] text-xs font-bold text-[#174D3A]">
               <Shield className="w-3.5 h-3.5" />
               <span>Experiment 2: Three-Stage Privacy Transformation</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#202B26]">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#202B26] break-words">
               From Raw Reflection to Minimal Mentor Insight
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-600">
+            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-2xl">
               Interactive 3-stage proof: Trace how identifiable facts are scrubbed and synthesized, requiring explicit verified consent before any payload write.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             <button
               onClick={handleResetProof}
-              className="px-3.5 py-2 rounded-xl border border-neutral-200 text-xs font-medium text-neutral-600 hover:bg-neutral-50 flex items-center gap-1.5 cursor-pointer"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl border border-neutral-200 text-xs font-medium text-neutral-600 hover:bg-neutral-50 flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px]"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Reset Experiment</span>
@@ -906,14 +906,14 @@ export const ShowcaseLab: React.FC = () => {
             <button
               onClick={handleGenerateSummary}
               disabled={isTransformingExp2}
-              className="px-4 py-2 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#113A2C] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#174D3A] text-white text-xs font-semibold hover:bg-[#113A2C] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 min-h-[42px]"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#A8C5A0]" />
               <span>{isTransformingExp2 ? 'Scrubbing...' : 'Generate Summary'}</span>
             </button>
             <button
               onClick={handleReviewSummary}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all border ${
+              className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all border min-h-[42px] ${
                 proofStage >= 2
                   ? 'bg-white border-[#174D3A] text-[#174D3A] hover:bg-[#E3F2E8]/40'
                   : 'bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed'
@@ -925,7 +925,7 @@ export const ShowcaseLab: React.FC = () => {
             <button
               onClick={handleApproveSharing}
               disabled={isVerifyingConsent || proofStage < 2}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs ${
+              className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs min-h-[42px] ${
                 sharingConsentGiven
                   ? 'bg-emerald-700 text-white'
                   : proofStage >= 2
@@ -1264,13 +1264,13 @@ export const ShowcaseLab: React.FC = () => {
       {/* ============================================================== */}
       {/* EXPERIMENT 3: EMOTIONAL PATTERN EXPLAINER (14-DAY MOOD)        */}
       {/* ============================================================== */}
-      <section className="bg-white rounded-2xl border border-neutral-200/80 p-6 sm:p-8 shadow-xs space-y-8">
+      <section className="bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 md:p-8 shadow-xs space-y-6 sm:space-y-8">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E3F2E8] text-xs font-bold text-[#174D3A]">
             <BarChart3 className="w-3.5 h-3.5" />
             <span>Experiment 3: Deterministic Data + Gemini Plain-Language Explainer</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#202B26]">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#202B26] break-words">
             Emotional Pattern Explainer
           </h2>
           <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-3xl">
@@ -1308,22 +1308,22 @@ export const ShowcaseLab: React.FC = () => {
         </div>
 
         {/* Deterministic Metrics Banner */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F7F8F4] p-4 rounded-2xl border border-neutral-200">
-          <div className="p-3 bg-white rounded-xl border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block">
-              14-Day Average Score
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-[#F7F8F4] p-3 sm:p-4 rounded-2xl border border-neutral-200">
+          <div className="p-3 bg-white rounded-xl border border-neutral-200 min-w-0">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block truncate">
+              14-Day Average
             </span>
-            <div className="text-lg font-extrabold text-[#202B26] mt-0.5">
+            <div className="text-base sm:text-lg font-extrabold text-[#202B26] mt-0.5">
               {deterministicMetrics.mean} <span className="text-xs font-normal text-neutral-500">/ 5.0</span>
             </div>
             <span className="text-[10px] text-neutral-400">Deterministic mean</span>
           </div>
 
-          <div className="p-3 bg-white rounded-xl border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block">
-              Week 1 vs Week 2 Drift
+          <div className="p-3 bg-white rounded-xl border border-neutral-200 min-w-0">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block truncate">
+              W1 vs W2 Drift
             </span>
-            <div className={`text-lg font-extrabold mt-0.5 flex items-center gap-1 ${
+            <div className={`text-base sm:text-lg font-extrabold mt-0.5 flex items-center gap-1 ${
               deterministicMetrics.delta > 0
                 ? 'text-emerald-700'
                 : deterministicMetrics.delta < 0
@@ -1331,21 +1331,21 @@ export const ShowcaseLab: React.FC = () => {
                 : 'text-neutral-700'
             }`}>
               {deterministicMetrics.delta > 0 ? (
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <TrendingUp className="w-4 h-4 text-emerald-600 shrink-0" />
               ) : deterministicMetrics.delta < 0 ? (
-                <TrendingDown className="w-4 h-4 text-amber-600" />
+                <TrendingDown className="w-4 h-4 text-amber-600 shrink-0" />
               ) : null}
               <span>{deterministicMetrics.delta > 0 ? `+${deterministicMetrics.delta}` : deterministicMetrics.delta}</span>
               <span className="text-xs font-semibold">({deterministicMetrics.percentChange}%)</span>
             </div>
-            <span className="text-[10px] text-neutral-400">Week 1: {deterministicMetrics.week1Avg} → W2: {deterministicMetrics.week2Avg}</span>
+            <span className="text-[10px] text-neutral-400 truncate block">W1: {deterministicMetrics.week1Avg} → W2: {deterministicMetrics.week2Avg}</span>
           </div>
 
-          <div className="p-3 bg-white rounded-xl border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block">
+          <div className="p-3 bg-white rounded-xl border border-neutral-200 min-w-0">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block truncate">
               Low vs High Days
             </span>
-            <div className="text-lg font-extrabold text-[#202B26] mt-0.5">
+            <div className="text-sm sm:text-base font-extrabold text-[#202B26] mt-0.5">
               <span className="text-amber-700">{deterministicMetrics.lowDaysCount} Low</span>
               <span className="text-neutral-300 mx-1">/</span>
               <span className="text-emerald-700">{deterministicMetrics.highDaysCount} High</span>
@@ -1353,8 +1353,8 @@ export const ShowcaseLab: React.FC = () => {
             <span className="text-[10px] text-neutral-400">Score &le;2 vs &ge;4</span>
           </div>
 
-          <div className="p-3 bg-white rounded-xl border border-neutral-200">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block">
+          <div className="p-3 bg-white rounded-xl border border-neutral-200 min-w-0">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block truncate">
               Rhythm Trajectory
             </span>
             <div className="text-xs font-bold text-[#174D3A] mt-1 line-clamp-1">
@@ -1367,7 +1367,7 @@ export const ShowcaseLab: React.FC = () => {
         {/* Side-by-Side: Recharts Chart vs Gemini Plain-Language Explainer */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT: 14-Day Chart Visualization (7 Cols) */}
-          <div className="lg:col-span-7 bg-[#F7F8F4] p-5 rounded-2xl border border-neutral-200 space-y-4">
+          <div className="lg:col-span-7 bg-[#F7F8F4] p-4 sm:p-5 rounded-2xl border border-neutral-200 space-y-4 min-w-0">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-neutral-200">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[#174D3A]" />

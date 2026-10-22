@@ -21,12 +21,12 @@ const AppContent: React.FC = () => {
   const { currentPage, toasts } = useApp();
 
   return (
-    <div className="min-h-screen bg-[#F7F8F4] text-[#202B26] flex flex-col font-sans selection:bg-[#A8C5A0]/30 selection:text-[#174D3A]">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#F7F8F4] text-[#202B26] flex flex-col font-sans selection:bg-[#A8C5A0]/30 selection:text-[#174D3A]">
       {/* Top Navigation Bar with Uploaded Logo */}
       <Navbar />
 
-      {/* Main Viewport Content */}
-      <main className="flex-1">
+      {/* Main Viewport Content with mobile bottom padding to prevent overlap */}
+      <main className="flex-1 w-full overflow-x-hidden min-w-0 pb-20 md:pb-0">
         {currentPage === 'landing' && <LandingPage />}
         {currentPage === 'student-dashboard' && <StudentDashboard />}
         {currentPage === 'mentor-dashboard' && <MentorDashboard />}
@@ -40,8 +40,8 @@ const AppContent: React.FC = () => {
       {/* Interactive Guided Demo Modal for Judges */}
       <GuidedTourModal />
 
-      {/* Toast Notification Stack */}
-      <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm">
+      {/* Toast Notification Stack positioned safely above bottom nav */}
+      <div className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:right-auto sm:left-6 z-50 flex flex-col gap-2 pointer-events-none max-w-sm">
         {toasts.map((toast) => (
           <div
             key={toast.id}
@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
             {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-[#174D3A] shrink-0" />}
             {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />}
             {toast.type === 'info' && <Info className="w-4 h-4 text-[#174D3A] shrink-0" />}
-            <span>{toast.message}</span>
+            <span className="break-words">{toast.message}</span>
           </div>
         ))}
       </div>

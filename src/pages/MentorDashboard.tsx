@@ -109,97 +109,97 @@ export const MentorDashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-neutral-200/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-neutral-200/80">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#202B26] tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#202B26] tracking-tight">
               Student Wellbeing Overview
             </h1>
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#E3F2E8] text-[#174D3A] border border-[#A8C5A0]/60">
               Mentor Portal (Demo)
             </span>
           </div>
-          <p className="text-sm text-neutral-600 mt-1">
+          <p className="text-xs sm:text-sm text-neutral-600 mt-1">
             Understand patterns. Offer support. Respect privacy.
           </p>
         </div>
 
         {/* Privacy Guard Notice */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#E3F2E8]/60 border border-[#A8C5A0]/80 rounded-xl text-xs text-[#174D3A]">
-          <EyeOff className="w-4 h-4" />
-          <span>Zero Diary Access · Only High-Level Themes &amp; Tokens Rendered</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#E3F2E8]/60 border border-[#A8C5A0]/80 rounded-xl text-xs text-[#174D3A] self-start md:self-auto">
+          <EyeOff className="w-4 h-4 shrink-0" />
+          <span className="truncate">Zero Diary Access · Only Themes &amp; Tokens</span>
         </div>
       </div>
 
       {/* Section A: Overview Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Metric 1: Total Demo Students */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200/80 shadow-xs space-y-2 min-w-0">
           <div className="flex items-center justify-between text-xs text-neutral-500">
             <span>Total Demo Cohort</span>
             <Users className="w-4 h-4 text-[#174D3A]" />
           </div>
-          <div className="text-2xl font-bold text-[#202B26] font-mono tabular-nums">
+          <div className="text-xl sm:text-2xl font-bold text-[#202B26] font-mono tabular-nums">
             {totalStudents}
           </div>
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-neutral-500 truncate">
             Sample undergraduate cohort
           </div>
         </div>
 
         {/* Metric 2: Recent Check-ins */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200/80 shadow-xs space-y-2 min-w-0">
           <div className="flex items-center justify-between text-xs text-neutral-500">
             <span>Recent Check-Ins</span>
             <Calendar className="w-4 h-4 text-[#174D3A]" />
           </div>
-          <div className="text-2xl font-bold text-[#202B26] font-mono tabular-nums">
+          <div className="text-xl sm:text-2xl font-bold text-[#202B26] font-mono tabular-nums">
             {recentCheckInsCount}
           </div>
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-neutral-500 truncate">
             Voluntary student submissions
           </div>
         </div>
 
         {/* Metric 3: May Benefit From Check-In */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200/80 shadow-xs space-y-2 min-w-0">
           <div className="flex items-center justify-between text-xs text-neutral-500">
             <span>Support Check-In Helpful</span>
             <Heart className="w-4 h-4 text-[#D97706]" />
           </div>
-          <div className="text-2xl font-bold text-[#D97706] font-mono tabular-nums">
+          <div className="text-xl sm:text-2xl font-bold text-[#D97706] font-mono tabular-nums">
             {mayBenefitCount}
           </div>
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-neutral-500 truncate">
             Based on self-reported shifts
           </div>
         </div>
 
         {/* Metric 4: Unread Mentor Messages */}
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs space-y-2">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200/80 shadow-xs space-y-2 min-w-0">
           <div className="flex items-center justify-between text-xs text-neutral-500">
             <span>Unread Support Notes</span>
             <MessageSquare className="w-4 h-4 text-[#174D3A]" />
           </div>
-          <div className="text-2xl font-bold text-[#202B26] font-mono tabular-nums">
+          <div className="text-xl sm:text-2xl font-bold text-[#202B26] font-mono tabular-nums">
             {unreadMentorMessagesCount}
           </div>
-          <div className="text-xs text-neutral-500">
+          <div className="text-xs text-neutral-500 truncate">
             Delivered to student dashboards
           </div>
         </div>
       </div>
 
       {/* Section B: Anonymous Student Directory */}
-      <div className="bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-neutral-100">
+      <div className="bg-white rounded-2xl border border-neutral-200/80 p-4 sm:p-6 shadow-xs space-y-5 sm:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-neutral-100">
           <div>
             <span className="text-xs font-semibold tracking-wider text-[#174D3A] uppercase">
               Cohort Directory
             </span>
-            <h2 className="text-lg font-bold text-[#202B26] mt-0.5">
+            <h2 className="text-base sm:text-lg font-bold text-[#202B26] mt-0.5">
               Anonymous Student Profiles
             </h2>
           </div>
@@ -213,15 +213,15 @@ export const MentorDashboard: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search token (e.g. #03)..."
-                className="text-xs pl-8 pr-3 py-1.5 rounded-lg border border-neutral-200 bg-[#F7F8F4] focus:bg-white focus:outline-none focus:border-[#174D3A] w-full sm:w-44"
+                className="text-xs pl-8 pr-3 py-2 rounded-lg border border-neutral-200 bg-[#F7F8F4] focus:bg-white focus:outline-none focus:border-[#174D3A] w-full sm:w-44 min-h-[38px]"
               />
             </div>
 
             {/* Filter Segmented Control */}
-            <div className="flex items-center gap-1 p-1 bg-[#F7F8F4] rounded-lg border border-neutral-200">
+            <div className="flex flex-wrap items-center gap-1 p-1 bg-[#F7F8F4] rounded-lg border border-neutral-200">
               <button
                 onClick={() => setFilterStatus('all')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                   filterStatus === 'all'
                     ? 'bg-white text-[#174D3A] shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900'
@@ -231,7 +231,7 @@ export const MentorDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setFilterStatus('changed')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                   filterStatus === 'changed'
                     ? 'bg-white text-[#174D3A] shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900'
@@ -241,7 +241,7 @@ export const MentorDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setFilterStatus('checkin_helpful')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                   filterStatus === 'checkin_helpful'
                     ? 'bg-white text-[#174D3A] shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900'
@@ -251,7 +251,7 @@ export const MentorDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setFilterStatus('stable')}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer min-h-[36px] flex items-center ${
                   filterStatus === 'stable'
                     ? 'bg-white text-[#174D3A] shadow-xs'
                     : 'text-neutral-600 hover:text-neutral-900'
@@ -277,7 +277,7 @@ export const MentorDashboard: React.FC = () => {
                   setFilterStatus('all');
                   setSearchQuery('');
                 }}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white border border-neutral-300 text-[#174D3A] hover:bg-neutral-50 cursor-pointer"
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-neutral-300 text-[#174D3A] hover:bg-neutral-50 cursor-pointer min-h-[40px]"
               >
                 Clear Search &amp; Filters
               </button>
@@ -289,11 +289,11 @@ export const MentorDashboard: React.FC = () => {
               <div
                 key={student.id}
                 onClick={() => handleOpenDrawer(student)}
-                className="p-5 rounded-2xl bg-[#F7F8F4] border border-neutral-200/80 hover:border-[#174D3A]/40 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-xs"
+                className="p-4 sm:p-5 rounded-2xl bg-[#F7F8F4] border border-neutral-200/80 hover:border-[#174D3A]/40 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:shadow-xs min-w-0"
               >
-                <div className="space-y-2 flex-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-base font-bold text-[#174D3A] group-hover:text-[#113A2C]">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className="text-sm sm:text-base font-bold text-[#174D3A] group-hover:text-[#113A2C] break-words">
                       {hasConsent ? `${student.displayName} (${student.anonymousId})` : student.anonymousId}
                     </span>
 
@@ -314,15 +314,15 @@ export const MentorDashboard: React.FC = () => {
 
                   {/* Trend & Limited Summary */}
                   <div className="text-xs text-neutral-600 space-y-1">
-                    <div>
+                    <div className="break-words">
                       <strong className="text-neutral-800">Trend: </strong>
                       {student.recentTrend}
                     </div>
-                    <div>
+                    <div className="break-words">
                       <strong className="text-neutral-800">Activity: </strong>
                       {student.activitySummary}
                     </div>
-                    <div className="bg-white/90 p-2.5 rounded-xl border border-neutral-200/70 text-neutral-700 leading-relaxed">
+                    <div className="bg-white/90 p-2.5 sm:p-3 rounded-xl border border-neutral-200/70 text-neutral-700 leading-relaxed break-words">
                       <strong className="text-[#174D3A]">Privacy-Filtered Summary: </strong>
                       {student.limitedSummary}
                     </div>
@@ -330,12 +330,12 @@ export const MentorDashboard: React.FC = () => {
                 </div>
 
                 {/* Right Action: Suggested Action & Drawer Trigger */}
-                <div className="flex md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-200">
-                  <div className="text-right">
-                    <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
+                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-neutral-200 w-full md:w-auto">
+                  <div className="text-left md:text-right">
+                    <div className="text-[10px] sm:text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
                       Suggested Next Step
                     </div>
-                    <div className="text-xs font-medium text-[#174D3A] max-w-xs">
+                    <div className="text-xs font-medium text-[#174D3A] max-w-xs break-words">
                       {student.suggestedAction}
                     </div>
                   </div>
@@ -345,7 +345,7 @@ export const MentorDashboard: React.FC = () => {
                       e.stopPropagation();
                       handleOpenDrawer(student);
                     }}
-                    className="px-4 py-2 rounded-xl bg-white border border-[#A8C5A0] text-xs font-semibold text-[#174D3A] group-hover:bg-[#174D3A] group-hover:text-white transition-all shadow-2xs whitespace-nowrap cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white border border-[#A8C5A0] text-xs font-semibold text-[#174D3A] group-hover:bg-[#174D3A] group-hover:text-white transition-all shadow-2xs whitespace-nowrap cursor-pointer min-h-[44px] flex items-center justify-center"
                   >
                     View Details &amp; Reach Out
                   </button>
@@ -359,7 +359,7 @@ export const MentorDashboard: React.FC = () => {
         {/* Legend & Educational Disclaimer */}
         <div className="pt-4 border-t border-neutral-100 bg-[#F7F8F4] p-4 rounded-xl text-xs text-neutral-600 space-y-1">
           <div className="font-semibold text-neutral-800 flex items-center gap-1.5">
-            <Info className="w-4 h-4 text-[#174D3A]" />
+            <Info className="w-4 h-4 text-[#174D3A] shrink-0" />
             Mentor Directory Legend &amp; Ethical Guidance
           </div>
           <p className="leading-relaxed">
@@ -374,7 +374,7 @@ export const MentorDashboard: React.FC = () => {
       {/* Section C: Student Detail Drawer Modal */}
       {selectedStudent && (
         <div className="fixed inset-0 z-50 overflow-hidden bg-black/40 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
-          <div className="w-full max-w-xl bg-white h-full shadow-2xl p-6 overflow-y-auto space-y-6 flex flex-col justify-between animate-in slide-in-from-right duration-300">
+          <div className="w-full max-w-full sm:max-w-xl bg-white h-full shadow-2xl p-4 sm:p-6 overflow-y-auto space-y-6 flex flex-col justify-between animate-in slide-in-from-right duration-300">
             {/* Top Bar of Drawer */}
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
